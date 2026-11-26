@@ -1,17 +1,205 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="is-booting">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Skipped · Guess today's quiz code</title>
   <meta name="description" content="You skipped class and missed the quiz code. Your friends can't just text it to you, so they send hints from the back row. Guess today's word before class ends at 2:20.">
+  <meta name="theme-color" content="#2a2420">
+  <meta property="og:title" content="Skipped · Guess today's quiz code">
+  <meta property="og:description" content="You overslept. Your friends are texting hints from class. Guess the quiz code before 2:20.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
-  <main class="room" id="room">
-    <h1 class="title">Skipped</h1>
-    <p class="tagline">You missed class. Your friends are texting hints. Class ends at 2:20.</p>
-  </main>
+  <!--
+    Knock knock.
+    Who's there?
+    The quiz code.
+    The quiz code wh—
+    Nice try. Ask your friends.
+  -->
+  <h1 class="visually-hidden">Skipped: guess today's quiz code</h1>
+
+  <div class="stage">
+    <div class="scene" id="scene" data-weather="clear">
+
+      <!-- The far wall and the window -->
+      <div class="wall" aria-hidden="true"></div>
+      <div class="window" aria-hidden="true">
+        <div class="sky"></div>
+        <div class="tree-outside"></div>
+        <div class="rain"></div>
+        <div class="blinds"></div>
+        <div class="blind-cord"></div>
+      </div>
+      <div class="poster" aria-hidden="true"><span>WashU</span></div>
+
+      <!-- The wall calendar: stats -->
+      <button class="calendar" id="calendar" type="button" aria-label="Wall calendar: your stats and make-up quizzes">
+        <span class="calendar-pin" aria-hidden="true"></span>
+        <span class="calendar-photo" aria-hidden="true"></span>
+        <span class="calendar-month" id="calendar-month">November</span>
+        <span class="calendar-grid" id="calendar-grid" aria-hidden="true"></span>
+      </button>
+
+      <!-- Wrong codes go on sticky notes -->
+      <section class="notes" aria-labelledby="notes-title">
+        <h2 class="visually-hidden" id="notes-title">Codes you've tried</h2>
+        <ul class="notes-list" id="notes"></ul>
+      </section>
+
+      <!-- Nightstand + alarm clock -->
+      <div class="nightstand" aria-hidden="true">
+        <div class="mug"></div>
+      </div>
+      <div class="clock" id="clock" role="timer" aria-live="off" aria-label="Alarm clock">
+        <div class="clock-face">
+          <span class="clock-ampm" aria-hidden="true">PM</span>
+          <span class="clock-digits" id="clock-digits" aria-hidden="true"></span>
+          <span class="clock-alarm" aria-hidden="true">ALM</span>
+        </div>
+      </div>
+
+      <!-- The bed, from where you're lying -->
+      <div class="blanket" aria-hidden="true"><div class="knees"></div></div>
+      <div class="sunlight" aria-hidden="true"><div class="sunlight-slats"></div></div>
+
+      <!-- Laptop: the class quiz page -->
+      <section class="laptop" aria-label="Laptop">
+        <div class="laptop-lid">
+          <div class="laptop-cam" aria-hidden="true"></div>
+          <div class="screen">
+            <div class="browser-bar" aria-hidden="true">
+              <span class="browser-dots"><i></i><i></i><i></i></span>
+              <span class="browser-tab">Quiz · CSE 2004</span>
+            </div>
+            <div class="browser-url" aria-hidden="true">cse2004.class/quizzes/<span id="url-day">day-1</span></div>
+            <div class="site">
+              <nav class="site-nav" aria-label="Class site">
+                <span class="site-brand">CSE 2004</span>
+                <span class="site-link">Lectures</span>
+                <span class="site-link">Websites</span>
+                <span class="site-link is-active">Quizzes</span>
+              </nav>
+              <div class="site-main">
+                <article class="card" id="quiz-card">
+                  <header class="card-header">
+                    <h2 class="card-title" id="quiz-title">Quiz · Day 1</h2>
+                    <span class="badge" id="quiz-badge">Locked</span>
+                  </header>
+
+                  <div class="card-body" id="quiz-locked">
+                    <p class="card-text">This quiz is locked. Enter the access code given at the start of class.</p>
+                    <form class="code-form" id="code-form" autocomplete="off">
+                      <label class="form-label" for="code-input">Access code</label>
+                      <div class="input-group">
+                        <input class="form-control" id="code-input" name="code" type="text" spellcheck="false" autocapitalize="off" maxlength="40" aria-describedby="code-feedback">
+                        <button class="btn btn-primary" type="submit">Unlock</button>
+                      </div>
+                      <p class="feedback" id="code-feedback" role="status"></p>
+                    </form>
+                    <dl class="quiz-meta">
+                      <div><dt>Worth now</dt><dd id="meta-worth">2.00 / 2</dd></div>
+                      <div><dt>Late penalty</dt><dd id="meta-late">0%</dd></div>
+                      <div><dt>Closes</dt><dd>2:20 PM</dd></div>
+                    </dl>
+                    <button class="btn-link" id="give-up" type="button">Close the laptop and go back to sleep</button>
+                  </div>
+
+                  <div class="card-body" id="quiz-done" hidden>
+                    <p class="result-score"><span id="result-points">2.00</span> <span class="result-of">/ 2 points</span></p>
+                    <p class="result-line" id="result-line"></p>
+                    <div class="result-answer">
+                      <span class="form-label">Access code</span>
+                      <span class="result-code" id="result-code"></span>
+                    </div>
+                    <p class="result-ending" id="result-ending">Nice try. See you Thursday.</p>
+                    <div class="result-actions">
+                      <button class="btn btn-primary" id="share-button" type="button">Copy my result</button>
+                      <button class="btn btn-outline-primary" id="stats-button" type="button">Attendance</button>
+                    </div>
+                    <p class="feedback" id="share-feedback" role="status"></p>
+                    <textarea class="share-fallback" id="share-fallback" rows="4" readonly hidden aria-label="Your result, to copy by hand"></textarea>
+                  </div>
+                </article>
+                <p class="site-footer" id="site-footer"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="laptop-base" aria-hidden="true"><div class="laptop-notch"></div></div>
+      </section>
+
+      <!-- Phone: the group chat -->
+      <section class="phone" id="phone" aria-label="Phone: group chat">
+        <div class="phone-body">
+          <div class="phone-screen">
+            <div class="phone-status" aria-hidden="true">
+              <span id="phone-time">1:05</span>
+              <span class="phone-island"></span>
+              <span id="phone-weather">St. Louis</span>
+            </div>
+            <header class="chat-header">
+              <span class="chat-avatars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              <span class="chat-name" id="chat-name">2004 back row</span>
+              <button class="chat-bell" id="bell" type="button" aria-pressed="false" aria-label="Get a notification when a friend replies while you're in another tab">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.6L5.3 15a1 1 0 0 0 .9 1.5h11.6a1 1 0 0 0 .9-1.5L17 11.6V8a5 5 0 0 0-5-5Zm-2 15a2 2 0 0 0 4 0"/></svg>
+              </button>
+            </header>
+            <ol class="chat" id="chat" aria-live="polite" aria-label="Messages"></ol>
+            <div class="chat-compose">
+              <button class="hint-button" id="hint-button" type="button">
+                <span class="hint-label">another hint pls 🙏</span>
+                <span class="hint-cost" id="hint-cost">+7 min</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- The time jump flash -->
+      <div class="time-blur" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- Waking up -->
+  <div class="intro" id="intro">
+    <div class="intro-card">
+      <p class="intro-time" id="intro-time">1:04 PM</p>
+      <p class="intro-title">You overslept.</p>
+      <p class="intro-text">CSE 2004 started at 1:00. The quiz code is up on the projector and you're still in bed.</p>
+      <button class="intro-button" id="wake-button" type="button">Wake up</button>
+      <p class="intro-small" id="intro-small">Has sound. Mute it with the speaker in the corner.</p>
+    </div>
+  </div>
+
+  <button class="mute-button" id="mute" type="button" aria-pressed="false" aria-label="Mute sounds">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="speaker" d="M4 9h4l5-4v14l-5-4H4z"/><path class="waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="cross" d="M16 9l6 6m0-6-6 6"/></svg>
+  </button>
+
+  <!-- Wall calendar, opened -->
+  <dialog class="sheet" id="stats-dialog" aria-labelledby="stats-title">
+    <form method="dialog" class="sheet-close-form"><button class="sheet-close" aria-label="Close">×</button></form>
+    <h2 class="sheet-title" id="stats-title">Attendance</h2>
+    <dl class="stats" id="stats"></dl>
+    <p class="sheet-note">Like the syllabus: your lowest three quiz days are dropped.</p>
+    <h3 class="sheet-subtitle">Make-up quizzes</h3>
+    <p class="sheet-note">Missed a day? Practice it here. Make-ups don't count.</p>
+    <ul class="makeups" id="makeups"></ul>
+  </dialog>
+
+  <!-- A photo from the chat, bigger -->
+  <dialog class="sheet photo-sheet" id="photo-dialog" aria-label="Photo from the group chat">
+    <form method="dialog" class="sheet-close-form"><button class="sheet-close" aria-label="Close">×</button></form>
+    <div class="photo-frame" id="photo-frame"></div>
+  </dialog>
+
+  <noscript><p class="noscript">Skipped needs JavaScript to run.</p></noscript>
 </body>
 </html>

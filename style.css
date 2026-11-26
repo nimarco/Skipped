@@ -1,20 +1,55 @@
 /* ==========================================================================
    Skipped — style.css
-   Look: your bedroom seen from bed, early afternoon, blinds half closed.
-   Placeholder tokens until the room design is chosen in Phase 3.
+   Look: your bedroom seen from bed on a November afternoon. Warm wall,
+   light coming through the blinds, a laptop on your knees, your phone on
+   the blanket, a cheap red LED alarm clock on the nightstand.
+   The whole room is one 16:9 scene sized with container units (cqw), so
+   1cqw is always 1% of the room's width. Phones get a stacked layout.
    ========================================================================== */
 
 /* ---------- Design tokens ---------- */
 
+@property --t {
+  /* Time of day: 0 at 1:05 PM, 1 at 2:20 PM. Registered so it can animate. */
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --bg: #15130f;
-  --text: #f1e9da;
-  --text-dim: #a79e8e;
-  --clock-red: #ff3b2f;
+  --night: #1a1512;
+  --wall: #d9c8ae;
+  --wall-shade: #b7a184;
+  --sun: 255 214 150;
+  --blanket: #5d7489;
+  --blanket-dark: #3f5163;
+  --blanket-light: #7b93a8;
+  --wood: #8a5a3a;
+  --wood-dark: #5f3b24;
+  --led: #ff3b2f;
+  --note: #ffe873;
+  --ink: #1f2a44;
 
-  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* The class site's look, rebuilt from Bootstrap's public defaults (MIT) */
+  --bs-blue: #0d6efd;
+  --bs-blue-dark: #0b5ed7;
+  --bs-green: #198754;
+  --bs-red: #dc3545;
+  --bs-gray: #6c757d;
+  --bs-border: #dee2e6;
+  --bs-body: #212529;
+  --bs-light: #f8f9fa;
+
+  --chat-bg: #f4f3f1;
+  --bubble: #e7e5e2;
+  --bubble-me: #2f7bf6;
+
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: "Caveat", "Bradley Hand", cursive;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ---------- Base ---------- */
@@ -25,30 +60,1825 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
-  min-height: 100dvh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  line-height: 1.5;
+  height: 100%;
 }
 
-.room {
+body {
+  background: var(--night);
+  color: var(--bs-body);
+  font-family: var(--font-ui);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* No half-styled flash: main.js removes this once fonts and the room are ready. */
+html.is-booting body {
+  opacity: 0;
+  animation: boot-fallback 0s 2.5s forwards;
+}
+
+body {
+  transition: opacity 0.3s ease;
+}
+
+@keyframes boot-fallback {
+  to { opacity: 1; }
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid #ffb703;
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- The stage ---------- */
+
+.stage {
+  height: 100dvh;
   display: grid;
-  place-content: center;
-  min-height: 100dvh;
-  padding: 2rem;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 50% 40%, #2c241e 0%, var(--night) 70%);
+}
+
+.scene {
+  --t: 0;
+  position: relative;
+  width: min(100vw, 177.78dvh);
+  aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  overflow: hidden;
+  overflow: clip; /* hidden still lets focus scroll it; clip doesn't */
+  isolation: isolate;
+  font-size: 1cqw;
+}
+
+/* While the clock races forward, --t glides to its new value. */
+.scene.is-jumping {
+  transition: --t var(--jump-ms, 1700ms) cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ---------- The wall and the light ---------- */
+
+.wall {
+  position: absolute;
+  inset: 0;
+  background:
+    /* the corner of the room on the left */
+    linear-gradient(90deg, rgb(0 0 0 / 0.14) 0 1.2cqw, transparent 6cqw),
+    /* the ceiling's shadow */
+    linear-gradient(180deg, rgb(0 0 0 / 0.16), transparent 18cqw),
+    /* afternoon warmth grows as time passes */
+    linear-gradient(180deg, rgb(var(--sun) / calc(0.05 + var(--t) * 0.16)), rgb(var(--sun) / calc(var(--t) * 0.1))),
+    var(--wall);
+  /* the room gets a touch darker and warmer toward the end of class */
+  filter: brightness(calc(1.02 - var(--t) * 0.12)) saturate(calc(1 + var(--t) * 0.25));
+}
+
+/* Light through the blinds lands on the wall and slides left as the sun moves. */
+.sunlight {
+  position: absolute;
+  top: 38cqw;
+  left: calc(8cqw + var(--t) * 46cqw);
+  width: 24cqw;
+  height: 20cqw;
+  transform: skewX(calc(38deg - var(--t) * 30deg)) skewY(-4deg);
+  transform-origin: top left;
+  mix-blend-mode: soft-light;
+  opacity: calc(0.95 - var(--t) * 0.25);
+  pointer-events: none;
+}
+
+.sunlight-slats {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    180deg,
+    rgb(var(--sun) / 0.95) 0 1.05cqw,
+    transparent 1.05cqw 1.55cqw
+  );
+  filter: blur(0.25cqw);
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 40%, transparent 75%);
+}
+
+.scene[data-weather="cloudy"] .sunlight,
+.scene[data-weather="rain"] .sunlight,
+.scene[data-weather="snow"] .sunlight {
+  opacity: 0.25;
+}
+
+/* ---------- The window ---------- */
+
+.window {
+  position: absolute;
+  top: 2.4cqw;
+  left: 3cqw;
+  width: 20cqw;
+  height: 20cqw;
+  border: 1.1cqw solid #efe6d6;
+  border-radius: 0.3cqw;
+  box-shadow:
+    inset 0 0 0 0.25cqw #d7cbb6,
+    0 0.6cqw 1.2cqw rgb(0 0 0 / 0.18);
+  overflow: hidden;
+  background: #9bc6e6;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #8ec1ea 0%, #cfe6f2 70%, #f5e3c0 100%);
+  filter: hue-rotate(calc(var(--t) * -12deg)) saturate(calc(1 - var(--t) * 0.15));
+}
+
+.scene[data-weather="cloudy"] .sky,
+.scene[data-weather="rain"] .sky {
+  background: linear-gradient(180deg, #8d97a3, #b9c0c8);
+}
+
+.scene[data-weather="snow"] .sky {
+  background: linear-gradient(180deg, #b8c2cc, #e2e6ea);
+}
+
+/* A late-autumn tree across the street */
+.tree-outside {
+  position: absolute;
+  right: 1cqw;
+  bottom: -2cqw;
+  width: 16cqw;
+  height: 20cqw;
+  background:
+    radial-gradient(circle at 30% 35%, #c7742d 0 3cqw, transparent 3.1cqw),
+    radial-gradient(circle at 60% 25%, #b25a24 0 3.6cqw, transparent 3.7cqw),
+    radial-gradient(circle at 75% 50%, #d38b3a 0 3cqw, transparent 3.1cqw),
+    radial-gradient(circle at 45% 55%, #9b4b22 0 3.4cqw, transparent 3.5cqw),
+    linear-gradient(90deg, transparent 47%, #4b3324 47% 53%, transparent 53%);
+  opacity: 0.85;
+}
+
+.rain {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background:
+    repeating-linear-gradient(100deg, transparent 0 0.9cqw, rgb(255 255 255 / 0.5) 0.9cqw 0.98cqw, transparent 0.98cqw 2.2cqw);
+  background-size: 6cqw 6cqw;
+  animation: rain 0.45s linear infinite;
+  opacity: 0.65;
+}
+
+.scene[data-weather="rain"] .rain {
+  display: block;
+}
+
+.scene[data-weather="snow"] .rain {
+  display: block;
+  background: radial-gradient(circle, #fff 0 0.18cqw, transparent 0.22cqw) 0 0 / 2.2cqw 2.2cqw;
+  animation: snow 3s linear infinite;
+}
+
+@keyframes rain {
+  to { background-position: -1cqw 6cqw; }
+}
+
+@keyframes snow {
+  to { background-position: 1cqw 2.2cqw; }
+}
+
+/* Horizontal blinds, tilted half open: light slats with sky between them. */
+.blinds {
+  position: absolute;
+  inset: 0 0 4cqw;
+  background: repeating-linear-gradient(
+    180deg,
+    #f4eee4 0 0.95cqw,
+    #d9cfc0 0.95cqw 1.15cqw,
+    transparent 1.15cqw 1.65cqw
+  );
+  box-shadow: 0 0.4cqw 0.6cqw rgb(0 0 0 / 0.12);
+  transition: background-size 1.2s var(--ease-out);
+}
+
+.blinds::after {
+  /* the bottom rail */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.8cqw;
+  height: 0.8cqw;
+  background: #e8e0d2;
+  border-radius: 0.1cqw;
+  box-shadow: 0 0.2cqw 0.3cqw rgb(0 0 0 / 0.2);
+}
+
+.blind-cord {
+  position: absolute;
+  top: 0;
+  right: 2cqw;
+  width: 0.18cqw;
+  height: 16cqw;
+  background: #cfc4b2;
+}
+
+.blind-cord::after {
+  content: "";
+  position: absolute;
+  bottom: -0.6cqw;
+  left: -0.3cqw;
+  width: 0.8cqw;
+  height: 1cqw;
+  border-radius: 40%;
+  background: #cfc4b2;
+}
+
+.poster {
+  position: absolute;
+  top: 1.2cqw;
+  left: 41cqw;
+  width: 13cqw;
+  height: 3.6cqw;
+  background: #a51417;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  transform: rotate(-3deg);
+  box-shadow: 0 0.3cqw 0.4cqw rgb(0 0 0 / 0.2);
+}
+
+.poster span {
+  position: absolute;
+  top: 50%;
+  left: 1.4cqw;
+  transform: translateY(-50%);
+  color: #fff;
+  font: 700 1.5cqw/1 var(--font-ui);
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Wall calendar ---------- */
+
+.calendar {
+  position: absolute;
+  top: 1.6cqw;
+  left: 79cqw;
+  width: 12cqw;
+  padding: 0 0 0.9cqw;
+  border: 0;
+  border-radius: 0.2cqw;
+  background: #fbf8f1;
+  box-shadow: 0 0.5cqw 1cqw rgb(0 0 0 / 0.2), 0 0.1cqw 0.2cqw rgb(0 0 0 / 0.15);
+  transform: rotate(1.5deg);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s;
   text-align: center;
 }
 
-.title {
-  margin: 0;
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  letter-spacing: -0.02em;
+.calendar:hover {
+  transform: rotate(0.5deg) translateY(-0.3cqw);
+  box-shadow: 0 0.9cqw 1.6cqw rgb(0 0 0 / 0.25);
 }
 
-.tagline {
+.calendar-pin {
+  position: absolute;
+  top: -0.5cqw;
+  left: 50%;
+  width: 1cqw;
+  height: 1cqw;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff7a6b, #b3261e);
+  transform: translateX(-50%);
+  box-shadow: 0 0.2cqw 0.3cqw rgb(0 0 0 / 0.35);
+}
+
+/* The month's photo: a tree, since the quiz codes always are. */
+.calendar-photo {
+  display: block;
+  height: 4cqw;
+  border-radius: 0.2cqw 0.2cqw 0 0;
+  background:
+    radial-gradient(ellipse at 50% 42%, #3f7a3a 0 2.4cqw, transparent 2.5cqw),
+    radial-gradient(ellipse at 38% 52%, #4f8a3f 0 1.8cqw, transparent 1.9cqw),
+    radial-gradient(ellipse at 62% 52%, #356b33 0 1.8cqw, transparent 1.9cqw),
+    linear-gradient(90deg, transparent 48.5%, #5a3d25 48.5% 51.5%, transparent 51.5%) 0 0 / 100% 100%,
+    linear-gradient(180deg, #a9d3ef 0 72%, #9cc27a 72%);
+}
+
+.calendar-month {
+  display: block;
+  margin: 0.4cqw 0 0.2cqw;
+  font: 700 1.05cqw/1 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7a2b20;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.15cqw 0;
+  padding: 0 0.7cqw;
+  font: 500 0.62cqw/1.45 var(--font-ui);
+  color: #50463c;
+}
+
+.calendar-grid .day {
+  position: relative;
+}
+
+.calendar-grid .day.is-today {
+  outline: 0.1cqw solid #50463c;
+  border-radius: 0.15cqw;
+}
+
+/* Marker on paper: a red circle for a quiz you got, an X for one you missed. */
+.calendar-grid .day.is-won::after,
+.calendar-grid .day.is-lost::after {
+  content: "";
+  position: absolute;
+  inset: -0.05cqw 0.05cqw;
+  border: 0.14cqw solid #d0342c;
+  border-radius: 50%;
+  transform: rotate(-8deg);
+}
+
+.calendar-grid .day.is-lost::after {
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(45deg, transparent 45%, #d0342c 45% 55%, transparent 55%),
+    linear-gradient(-45deg, transparent 45%, #d0342c 45% 55%, transparent 55%);
+}
+
+.calendar-grid .head {
+  font-weight: 700;
+  color: #9b8d7d;
+}
+
+/* ---------- Sticky notes ---------- */
+
+.notes {
+  position: absolute;
+  top: 24.6cqw;
+  left: 3cqw;
+  width: 22cqw;
+}
+
+.notes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5cqw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Only the newest eight fit on the wall */
+.notes-list .note:nth-last-child(n + 9) {
+  display: none;
+}
+
+.note {
+  width: 5cqw;
+  height: 5cqw;
+  padding: 0.4cqw;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--note) 85%, #fff) 0 18%, var(--note) 18%);
+  color: var(--ink);
+  font: 700 1.3cqw/1 var(--font-hand);
+  text-align: center;
+  overflow-wrap: anywhere;
+  box-shadow: 0 0.35cqw 0.5cqw rgb(0 0 0 / 0.18);
+  transform: rotate(var(--tilt, -2deg));
+  text-decoration: line-through 0.12cqw rgb(208 52 44 / 0.75);
+}
+
+.note.is-new {
+  animation: slap 0.35s var(--ease-out);
+}
+
+.note:nth-child(3n + 2) { --note: #ffb3c7; }
+.note:nth-child(3n + 3) { --note: #b8f0c9; }
+
+@keyframes slap {
+  from { transform: rotate(var(--tilt)) scale(1.5) translateY(-2cqw); opacity: 0; }
+}
+
+/* ---------- Nightstand + clock ---------- */
+
+.nightstand {
+  position: absolute;
+  top: 42cqw;
+  left: -1cqw;
+  width: 21cqw;
+  height: 22cqw;
+  background:
+    linear-gradient(180deg, #a06d48 0 1.3cqw, var(--wood) 1.3cqw 1.8cqw, var(--wood-dark) 1.8cqw 2.3cqw, var(--wood) 2.3cqw),
+    var(--wood);
+  border-radius: 0.4cqw 0.4cqw 0 0;
+  box-shadow: 0 -0.2cqw 0.6cqw rgb(0 0 0 / 0.2);
+}
+
+.nightstand::after {
+  /* drawer handle */
+  content: "";
+  position: absolute;
+  top: 6cqw;
+  left: 8.5cqw;
+  width: 4cqw;
+  height: 0.7cqw;
+  border-radius: 0.4cqw;
+  background: #c9a46a;
+}
+
+.mug {
+  position: absolute;
+  top: -4cqw;
+  left: 14.5cqw;
+  width: 3.4cqw;
+  height: 4.2cqw;
+  border-radius: 0.2cqw 0.2cqw 0.6cqw 0.6cqw;
+  background: linear-gradient(90deg, #e9e2d6, #fff 40%, #d8cfc1);
+}
+
+.mug::after {
+  content: "";
+  position: absolute;
+  top: 0.9cqw;
+  right: -1.1cqw;
+  width: 1.4cqw;
+  height: 1.8cqw;
+  border: 0.45cqw solid #e2dacd;
+  border-left: 0;
+  border-radius: 0 1cqw 1cqw 0;
+}
+
+.clock {
+  position: absolute;
+  top: 36.2cqw;
+  left: 1.6cqw;
+  width: 12.5cqw;
+  height: 6.2cqw;
+  padding: 0.6cqw;
+  border-radius: 1cqw 1cqw 0.5cqw 0.5cqw;
+  background: linear-gradient(180deg, #2b2b2e, #151517);
+  box-shadow: 0 0.5cqw 0.8cqw rgb(0 0 0 / 0.35), inset 0 0.15cqw 0 rgb(255 255 255 / 0.08);
+}
+
+.clock-face {
+  position: relative;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 0.5cqw;
+  background: #120606;
+  box-shadow: inset 0 0 0.6cqw #000;
+}
+
+.clock-digits {
+  display: flex;
+  align-items: center;
+  gap: 0.25cqw;
+  height: 3.4cqw;
+  filter: drop-shadow(0 0 0.35cqw rgb(255 40 30 / 0.75));
+}
+
+.clock-digits svg {
+  height: 100%;
+  width: auto;
+}
+
+.seg {
+  fill: rgb(255 59 47 / 0.07);
+}
+
+.seg.on {
+  fill: var(--led);
+}
+
+.colon {
+  fill: var(--led);
+  animation: blink 1s steps(1) infinite;
+}
+
+.clock-ampm,
+.clock-alarm {
+  position: absolute;
+  left: 0.55cqw;
+  font: 700 0.6cqw/1 var(--font-ui);
+  color: var(--led);
+  letter-spacing: 0.05em;
+}
+
+.clock-ampm { top: 0.6cqw; }
+.clock-alarm { bottom: 0.6cqw; opacity: 0.25; }
+
+.clock.is-ringing .clock-alarm {
+  opacity: 1;
+  animation: blink 0.5s steps(1) infinite;
+}
+
+.clock.is-ringing .clock-digits {
+  animation: blink 0.5s steps(1) infinite;
+}
+
+.clock.is-ringing {
+  animation: shake 0.12s linear infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.15; }
+}
+
+/* ---------- The bed ---------- */
+
+.blanket {
+  position: absolute;
+  left: -4cqw;
+  right: -4cqw;
+  top: 40cqw;
+  bottom: -4cqw;
+  border-radius: 40% 40% 0 0 / 18% 18% 0 0;
+  background:
+    /* folds */
+    radial-gradient(ellipse at 15% 30%, rgb(255 255 255 / 0.14) 0 6cqw, transparent 6.5cqw),
+    radial-gradient(ellipse at 85% 45%, rgb(0 0 0 / 0.18) 0 7cqw, transparent 8cqw),
+    /* a soft plaid */
+    repeating-linear-gradient(90deg, transparent 0 3.2cqw, rgb(255 255 255 / 0.05) 3.2cqw 3.8cqw),
+    repeating-linear-gradient(0deg, transparent 0 3.2cqw, rgb(0 0 0 / 0.07) 3.2cqw 3.8cqw),
+    linear-gradient(180deg, var(--blanket-light), var(--blanket) 30%, var(--blanket-dark));
+  box-shadow: 0 -0.8cqw 1.6cqw rgb(0 0 0 / 0.25);
+}
+
+/* Your knees under the blanket, holding up the laptop: one soft hill,
+   lit from the window on the left, with the laptop's shadow on top. */
+.knees {
+  position: absolute;
+  left: 20cqw;
+  top: -3cqw;
+  width: 60cqw;
+  height: 12cqw;
+  border-radius: 50% 50% 0 0 / 60% 60% 0 0;
+  background:
+    radial-gradient(ellipse 40% 18% at 50% 16%, rgb(0 0 0 / 0.2), transparent 100%),
+    radial-gradient(ellipse 60% 70% at 38% 30%, rgb(255 255 255 / 0.16), transparent 70%),
+    linear-gradient(180deg, var(--blanket-light), var(--blanket) 70%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent);
+}
+
+/* ---------- Laptop ---------- */
+
+.laptop {
+  position: absolute;
+  top: 5cqw;
+  left: 26cqw;
+  width: 45cqw;
+  filter: drop-shadow(0 1.4cqw 1.6cqw rgb(0 0 0 / 0.35));
+}
+
+.laptop-lid {
+  position: relative;
+  padding: 1.3cqw 1.1cqw 1.6cqw;
+  border-radius: 1.3cqw 1.3cqw 0.3cqw 0.3cqw;
+  background: linear-gradient(180deg, #2a2b30, #1b1c20);
+  box-shadow: inset 0 0 0 0.12cqw #3a3c42;
+}
+
+.laptop-cam {
+  position: absolute;
+  top: 0.45cqw;
+  left: 50%;
+  width: 0.45cqw;
+  height: 0.45cqw;
+  border-radius: 50%;
+  background: #0b0c0f;
+  box-shadow: inset 0 0 0.1cqw #3c4a66;
+  transform: translateX(-50%);
+}
+
+.screen {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 0.3cqw;
+  background: var(--bs-light);
+  font-size: 1.02cqw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Screen glare from the window */
+.screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 55%, rgb(255 255 255 / calc(0.08 + var(--t) * 0.08)) 62%, transparent 75%);
+  pointer-events: none;
+}
+
+.laptop-base {
+  position: relative;
+  height: 2cqw;
+  margin: 0 -2.4cqw;
+  border-radius: 0 0 1.6cqw 1.6cqw;
+  background: linear-gradient(180deg, #c9ccd2, #9da1a9 55%, #7d8189);
+  clip-path: polygon(1.2% 0, 98.8% 0, 100% 100%, 0 100%);
+}
+
+.laptop-notch {
+  width: 8cqw;
+  height: 0.5cqw;
+  margin: 0 auto;
+  border-radius: 0 0 0.6cqw 0.6cqw;
+  background: #8a8e96;
+}
+
+.browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.45em 0.8em 0;
+  background: #dfe1e5;
+}
+
+.browser-dots {
+  display: flex;
+  gap: 0.4em;
+}
+
+.browser-dots i {
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 50%;
+  background: #ff5f57;
+}
+
+.browser-dots i:nth-child(2) { background: #febc2e; }
+.browser-dots i:nth-child(3) { background: #28c840; }
+
+.browser-tab {
+  padding: 0.35em 1.4em 0.4em;
+  border-radius: 0.5em 0.5em 0 0;
+  background: #fff;
+  font-size: 0.8em;
+  color: #3c4043;
+}
+
+.browser-url {
+  padding: 0.35em 1em;
+  background: #fff;
+  border-bottom: 1px solid #e3e3e3;
+  font-size: 0.78em;
+  color: #5f6368;
+}
+
+.site {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.4em;
+  padding: 0.6em 1.4em;
+  background: var(--bs-body);
+  color: rgb(255 255 255 / 0.55);
+  font-size: 0.85em;
+}
+
+.site-brand {
+  margin-right: 0.6em;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+.site-link.is-active {
+  color: #fff;
+}
+
+.site-main {
+  flex: 1;
+  padding: 1.4em 2.4em;
+  overflow: auto;
+}
+
+.site-footer {
+  margin: 0.8em 0 0;
+  font-size: 0.75em;
+  color: var(--bs-gray);
+}
+
+/* ---------- The class site's components (our own CSS, Bootstrap-style values) ---------- */
+
+.card {
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 0.175);
+  border-radius: 0.375em;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65em 1.1em;
+  background: rgb(0 0 0 / 0.03);
+  border-bottom: 1px solid rgb(0 0 0 / 0.175);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.1em 1.1em 1em;
+}
+
+.card-text {
+  margin: 0 0 0.9em;
+  color: #495057;
+  font-size: 0.95em;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  border-radius: 0.375em;
+  background: var(--bs-gray);
+  color: #fff;
+  font-size: 0.72em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.badge.is-open { background: var(--bs-blue); }
+.badge.is-won { background: var(--bs-green); }
+.badge.is-lost { background: var(--bs-red); }
+
+.form-label {
+  display: block;
+  margin-bottom: 0.4em;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.input-group {
+  display: flex;
+}
+
+.form-control {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45em 0.8em;
+  border: 1px solid var(--bs-border);
+  border-radius: 0.375em 0 0 0.375em;
+  font: inherit;
+  font-size: 1em;
+  color: var(--bs-body);
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-control:focus {
+  outline: 0;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25em rgb(13 110 253 / 0.25);
+}
+
+.form-control.is-invalid {
+  border-color: var(--bs-red);
+  animation: shake-x 0.3s;
+}
+
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 0.25em rgb(220 53 69 / 0.25);
+}
+
+.btn {
+  padding: 0.45em 1em;
+  border: 1px solid transparent;
+  border-radius: 0.375em;
+  font-size: 0.95em;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.input-group .btn {
+  border-radius: 0 0.375em 0.375em 0;
+}
+
+.btn-primary {
+  background: var(--bs-blue);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--bs-blue-dark);
+}
+
+.btn-outline-primary {
+  background: transparent;
+  border-color: var(--bs-blue);
+  color: var(--bs-blue);
+}
+
+.btn-outline-primary:hover {
+  background: var(--bs-blue);
+  color: #fff;
+}
+
+.btn-link {
+  margin-top: 0.8em;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bs-gray);
+  font-size: 0.78em;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: var(--bs-body);
+}
+
+.feedback {
+  min-height: 1.4em;
+  margin: 0.4em 0 0;
+  font-size: 0.82em;
+}
+
+.feedback.is-error { color: var(--bs-red); }
+.feedback.is-warn { color: #9a6700; }
+.feedback.is-ok { color: var(--bs-green); }
+
+.quiz-meta {
+  display: flex;
+  gap: 1.6em;
+  margin: 0.4em 0 0;
+  padding-top: 0.8em;
+  border-top: 1px solid var(--bs-border);
+  font-size: 0.82em;
+}
+
+.quiz-meta dt {
+  color: var(--bs-gray);
+}
+
+.quiz-meta dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.quiz-meta dd.is-late {
+  color: var(--bs-red);
+}
+
+.result-score {
+  margin: 0;
+  font-size: 2.6em;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-of {
+  font-size: 0.4em;
+  font-weight: 500;
+  color: var(--bs-gray);
+}
+
+.result-line {
+  margin: 0.2em 0 0.9em;
+  color: #495057;
+  font-size: 0.9em;
+}
+
+.result-answer {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+}
+
+.result-code {
+  padding: 0.2em 0.6em;
+  border: 1px dashed var(--bs-border);
+  border-radius: 0.375em;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 1.1em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.result-ending {
+  margin: 0.9em 0;
+  font-weight: 600;
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.6em;
+}
+
+.share-fallback {
+  width: 100%;
+  margin-top: 0.5em;
+  font: 0.8em/1.4 ui-monospace, monospace;
+}
+
+@keyframes shake-x {
+  25% { transform: translateX(-0.3em); }
+  75% { transform: translateX(0.3em); }
+}
+
+/* ---------- Phone ---------- */
+
+.phone {
+  position: absolute;
+  top: 15.6cqw;
+  left: 75cqw;
+  width: 18.5cqw;
+  transform: rotate(3deg);
+  transform-origin: 50% 90%;
+  filter: drop-shadow(0 1.2cqw 1.2cqw rgb(0 0 0 / 0.4));
+}
+
+.phone.is-buzzing {
+  animation: buzz 0.09s linear 5;
+}
+
+@keyframes buzz {
+  0%, 100% { transform: rotate(3deg) translate(0, 0); }
+  25% { transform: rotate(2.2deg) translate(-0.25cqw, 0.1cqw); }
+  75% { transform: rotate(3.8deg) translate(0.25cqw, -0.1cqw); }
+}
+
+@keyframes shake {
+  25% { transform: translateX(-0.12cqw) rotate(-0.6deg); }
+  75% { transform: translateX(0.12cqw) rotate(0.6deg); }
+}
+
+.phone-body {
+  padding: 0.55cqw;
+  border-radius: 2.6cqw;
+  background: linear-gradient(135deg, #3a3d44, #17181c 60%);
+  box-shadow: inset 0 0 0 0.15cqw #4b4f58;
+}
+
+.phone-screen {
+  display: flex;
+  flex-direction: column;
+  height: 36.4cqw;
+  overflow: hidden;
+  border-radius: 2.1cqw;
+  background: var(--chat-bg);
+  font-size: 0.98cqw;
+}
+
+.phone-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6em 1.4em 0.2em;
+  font-size: 0.85em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.phone-island {
+  width: 5.5em;
+  height: 1.5em;
+  border-radius: 1em;
+  background: #000;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.5em 0.9em 0.6em;
+  border-bottom: 1px solid #e2dfdb;
+  background: rgb(255 255 255 / 0.7);
+}
+
+.chat-avatars {
+  display: flex;
+}
+
+.chat-avatars i {
+  width: 1.5em;
+  height: 1.5em;
+  margin-left: -0.45em;
+  border: 0.14em solid #fff;
+  border-radius: 50%;
+  background: #e86a92;
+}
+
+.chat-avatars i:first-child { margin-left: 0; }
+.chat-avatars i:nth-child(2) { background: #4f8fd8; }
+.chat-avatars i:nth-child(3) { background: #3fa77a; }
+.chat-avatars i:nth-child(4) { background: #d6922b; }
+
+.chat-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.chat-bell {
+  display: grid;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #8a8580;
+}
+
+.chat-bell svg {
+  width: 1.3em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.chat-bell[aria-pressed="true"] {
+  color: var(--bubble-me);
+}
+
+.chat-bell[aria-pressed="true"] svg {
+  fill: currentColor;
+}
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  margin: 0;
+  padding: 0.8em 0.8em 0.6em;
+  overflow-y: auto;
+  list-style: none;
+  scroll-behavior: smooth;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 85%;
+  animation: msg-in 0.28s var(--ease-out);
+}
+
+.msg.is-me {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.msg-name {
+  margin: 0.4em 0 0.1em 0.9em;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--friend, #777);
+}
+
+.msg-bubble {
+  padding: 0.45em 0.8em;
+  border-radius: 1.1em;
+  background: var(--bubble);
+  overflow-wrap: anywhere;
+}
+
+.msg.is-me .msg-bubble {
+  background: var(--bubble-me);
+  color: #fff;
+}
+
+.msg-media {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.2em;
+  padding: 0;
+  border: 0;
+  border-radius: 1em;
+  overflow: hidden;
+  background: #222;
+}
+
+.msg-media canvas,
+.msg-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.msg-media.is-broken {
+  padding: 1em;
+  background: var(--bubble);
+  color: #6b6560;
+  font-size: 0.85em;
+  font-style: italic;
+}
+
+.voice {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.45em 0.9em 0.45em 0.45em;
+  border: 0;
+  border-radius: 1.1em;
+  background: var(--bubble);
+}
+
+.voice-play {
+  display: grid;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  background: #1f1f22;
+  color: #fff;
+}
+
+.voice-play svg {
+  width: 0.9em;
+  fill: currentColor;
+}
+
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 0.15em;
+  height: 1.6em;
+}
+
+.voice-wave i {
+  width: 0.2em;
+  border-radius: 0.1em;
+  background: #8b8680;
+}
+
+.voice.is-playing .voice-wave i {
+  background: #1f1f22;
+  animation: wave 0.5s ease-in-out infinite alternate;
+}
+
+.voice-time {
+  font-size: 0.8em;
+  color: #6b6560;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes wave {
+  to { transform: scaleY(0.4); }
+}
+
+.typing .msg-bubble {
+  display: flex;
+  gap: 0.25em;
+  padding: 0.7em 0.9em;
+}
+
+.typing .msg-bubble i {
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: #9b968f;
+  animation: typing 1s infinite;
+}
+
+.typing .msg-bubble i:nth-child(2) { animation-delay: 0.15s; }
+.typing .msg-bubble i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typing {
+  30% { transform: translateY(-0.3em); opacity: 1; }
+  0%, 60%, 100% { opacity: 0.5; }
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(0.6em) scale(0.96); }
+}
+
+.chat-time {
+  align-self: center;
+  margin: 0.5em 0 0.2em;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: #9b968f;
+}
+
+.chat-compose {
+  padding: 0.6em 0.8em 1.3em;
+  border-top: 1px solid #e2dfdb;
+  background: rgb(255 255 255 / 0.7);
+}
+
+.hint-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.6em 0.6em 0.6em 1em;
+  border: 1px solid #d8d4cf;
+  border-radius: 1.4em;
+  background: #fff;
+  text-align: left;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.hint-button:hover:not(:disabled) {
+  border-color: var(--bubble-me);
+}
+
+.hint-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.hint-button:disabled {
+  cursor: default;
+  color: #9b968f;
+}
+
+.hint-cost {
+  padding: 0.25em 0.7em;
+  border-radius: 1em;
+  background: var(--bubble-me);
+  color: #fff;
+  font-size: 0.8em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hint-button:disabled .hint-cost {
+  background: #c9c4be;
+}
+
+/* ---------- The time jump ---------- */
+
+.time-blur {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(100deg, transparent 30%, rgb(var(--sun) / 0.35) 48%, transparent 66%);
+  background-size: 300% 100%;
+  mix-blend-mode: screen;
+}
+
+.scene.is-jumping .time-blur {
+  animation: sweep var(--jump-ms, 1700ms) cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.scene.is-jumping .laptop,
+.scene.is-jumping .calendar,
+.scene.is-jumping .notes {
+  animation: drift var(--jump-ms, 1700ms) ease-in-out;
+}
+
+@keyframes sweep {
+  0% { opacity: 0; background-position: 100% 0; }
+  20%, 80% { opacity: 1; }
+  100% { opacity: 0; background-position: 0 0; }
+}
+
+@keyframes drift {
+  50% { filter: blur(0.12cqw) brightness(0.92); }
+}
+
+/* ---------- Waking up ---------- */
+
+.scene::after {
+  /* Room lights off until you wake up */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(10 8 12 / 0.82);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.6s var(--ease-out);
+  z-index: 5;
+}
+
+body.is-asleep .scene::after {
+  opacity: 1;
+}
+
+body.is-asleep .clock {
+  z-index: 6;
+}
+
+body.is-asleep .blinds {
+  /* closed tight */
+  background: repeating-linear-gradient(180deg, #e6ddcf 0 0.95cqw, #cbbfae 0.95cqw 1.1cqw);
+}
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  transition: opacity 0.6s, visibility 0.6s;
+}
+
+.intro.is-gone {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.intro-card {
+  max-width: 28rem;
+  text-align: center;
+  color: #f1e7da;
+}
+
+.intro-time {
+  margin: 0;
+  font: 700 1rem/1 var(--font-ui);
+  letter-spacing: 0.2em;
+  color: var(--led);
+  text-shadow: 0 0 0.6rem rgb(255 59 47 / 0.6);
+}
+
+.intro-title {
+  margin: 0.6rem 0 0.4rem;
+  font: 700 clamp(2.4rem, 6vw, 3.6rem)/1 var(--font-hand);
+}
+
+.intro-text {
+  margin: 0 0 1.6rem;
+  color: #cbbfb0;
+}
+
+.intro-button {
+  padding: 0.85rem 1.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--led);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 0 0 rgb(255 59 47 / 0.6);
+}
+
+.intro.is-ringing .intro-button {
+  animation: ring 1.2s infinite, shake 0.15s linear infinite;
+}
+
+.intro-button:hover {
+  background: #ff5a4f;
+}
+
+@keyframes ring {
+  70% { box-shadow: 0 0 0 1rem rgb(255 59 47 / 0); }
+}
+
+.intro-small {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  color: #8f8578;
+}
+
+/* ---------- Mute ---------- */
+
+.mute-button {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(20 16 14 / 0.55);
+  color: #f1e7da;
+  backdrop-filter: blur(6px);
+}
+
+.mute-button svg {
+  width: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mute-button .cross,
+.mute-button[aria-pressed="true"] .waves {
+  display: none;
+}
+
+.mute-button[aria-pressed="true"] .cross {
+  display: block;
+}
+
+/* ---------- Dialogs: the calendar opened, a photo up close ---------- */
+
+.sheet {
+  width: min(26rem, calc(100vw - 2rem));
+  padding: 1.6rem 1.6rem 1.4rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: #fbf8f1;
+  color: #2d2620;
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 0.45);
+}
+
+.sheet::backdrop {
+  background: rgb(15 11 9 / 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.sheet[open] {
+  animation: sheet-in 0.3s var(--ease-out);
+}
+
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateY(1rem) rotate(-1deg); }
+}
+
+.sheet-close-form {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  margin: 0;
+}
+
+.sheet-close {
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #7a6f63;
+}
+
+.sheet-close:hover {
+  background: rgb(0 0 0 / 0.06);
+}
+
+.sheet-title {
+  margin: 0 0 1rem;
+  font: 700 2.2rem/1 var(--font-hand);
+  color: #7a2b20;
+}
+
+.sheet-subtitle {
+  margin: 1.4rem 0 0.2rem;
+  font: 700 1.5rem/1.1 var(--font-hand);
+}
+
+.sheet-note {
   margin: 0.5rem 0 0;
-  color: var(--text-dim);
+  font-size: 0.82rem;
+  color: #7a6f63;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.stats div {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #e7dfd2;
+  border-radius: 0.3rem;
+  background: #fff;
+}
+
+.stats dt {
+  font-size: 0.75rem;
+  color: #7a6f63;
+}
+
+.stats dd {
+  margin: 0.1rem 0 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.makeups {
+  display: grid;
+  gap: 0.3rem;
+  max-height: 11rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.makeups a {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.3rem;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.makeups a:hover {
+  background: #f1eadd;
+}
+
+.makeups .empty {
+  font-size: 0.85rem;
+  color: #7a6f63;
+}
+
+.photo-sheet {
+  width: min(40rem, calc(100vw - 2rem));
+  padding: 0.6rem;
+  background: #111;
+}
+
+.photo-sheet .sheet-close {
+  color: #fff;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.photo-frame canvas,
+.photo-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.2rem;
+}
+
+.noscript {
+  position: fixed;
+  inset: auto 0 0;
+  margin: 0;
+  padding: 1rem;
+  background: #fff;
+  text-align: center;
+}
+
+/* ---------- Make-up quiz banner (laptop footer) ---------- */
+
+.site-footer.is-makeup {
+  color: #9a6700;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Phones and narrow windows: the room becomes a stack, top to bottom:
+   window strip with the clock, the laptop, the phone. Scrolls normally.
+   ========================================================================== */
+
+@media (max-width: 760px), (max-aspect-ratio: 1 / 1) {
+  body {
+    overflow: auto;
+  }
+
+  .stage {
+    height: auto;
+    min-height: 100dvh;
+    display: block;
+  }
+
+  .scene {
+    width: 100%;
+    aspect-ratio: auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "window clock"
+      "window calendar"
+      "notes notes"
+      "laptop laptop"
+      "phone phone";
+    gap: 1rem;
+    padding: 3.6rem 1rem 1.5rem;
+    font-size: 16px;
+    background:
+      linear-gradient(180deg, transparent 0 9rem, var(--wall) 9rem, var(--wall) 60%, var(--blanket) 60%);
+  }
+
+  .wall {
+    position: fixed;
+    z-index: -1;
+  }
+
+  .sunlight,
+  .poster,
+  .nightstand,
+  .blanket,
+  .blind-cord {
+    display: none;
+  }
+
+  .window {
+    grid-area: window;
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: auto;
+    border-width: 0.4rem;
+  }
+
+  .calendar {
+    grid-area: calendar;
+    position: relative;
+    inset: auto;
+    width: 8.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .calendar-pin {
+    width: 0.6rem;
+    height: 0.6rem;
+    top: -0.3rem;
+  }
+
+  .calendar-photo {
+    height: 2.4rem;
+  }
+
+  .calendar-month {
+    margin: 0.3rem 0 0.15rem;
+    font-size: 0.7rem;
+  }
+
+  .calendar-grid {
+    padding: 0 0.4rem;
+    font-size: 0.48rem;
+  }
+
+  .tree-outside {
+    width: 6rem;
+    height: 7rem;
+  }
+
+  .clock {
+    grid-area: clock;
+    position: relative;
+    inset: auto;
+    width: 8.5rem;
+    height: 4.4rem;
+    align-self: center;
+  }
+
+  .clock-digits {
+    height: 2.3rem;
+  }
+
+  .clock-ampm,
+  .clock-alarm {
+    font-size: 0.45rem;
+  }
+
+  .notes {
+    grid-area: notes;
+    position: relative;
+    inset: auto;
+    width: auto;
+  }
+
+  .notes-list:empty {
+    display: none;
+  }
+
+  .note {
+    width: 4.2rem;
+    height: 4.2rem;
+    font-size: 1.05rem;
+  }
+
+  .laptop {
+    grid-area: laptop;
+    position: relative;
+    inset: auto;
+    width: auto;
+  }
+
+  .laptop-lid {
+    padding: 0.7rem 0.5rem 0.8rem;
+    border-radius: 0.8rem 0.8rem 0.2rem 0.2rem;
+  }
+
+  .laptop-cam {
+    top: 0.25rem;
+    width: 0.3rem;
+    height: 0.3rem;
+  }
+
+  .screen {
+    aspect-ratio: auto;
+    font-size: 14px;
+  }
+
+  .site-main {
+    padding: 1rem;
+  }
+
+  .quiz-meta {
+    gap: 1rem;
+  }
+
+  .laptop-base {
+    height: 0.9rem;
+    margin: 0 -0.8rem;
+  }
+
+  .laptop-notch {
+    width: 4rem;
+    height: 0.3rem;
+  }
+
+  .phone {
+    grid-area: phone;
+    position: relative;
+    inset: auto;
+    width: min(100%, 24rem);
+    justify-self: center;
+    transform: none;
+  }
+
+  @keyframes buzz {
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+
+  .phone-body {
+    padding: 0.4rem;
+    border-radius: 2rem;
+  }
+
+  .phone-screen {
+    height: min(34rem, 80dvh);
+    border-radius: 1.6rem;
+    font-size: 15px;
+  }
+
+  .time-blur {
+    position: fixed;
+  }
+}
+
+/* ---------- Reduced motion: the time jump becomes a plain fade ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .scene.is-jumping {
+    transition: none;
+  }
+}
+
+/* ---------- Friends' name colors (set per message by data-from) ---------- */
+
+.msg[data-from="maya"] { --friend: #c2456f; }
+.msg[data-from="jordan"] { --friend: #2f6fb8; }
+.msg[data-from="theo"] { --friend: #2b855e; }
+.msg[data-from="priya"] { --friend: #a86a10; }
+
+.clock-digits svg {
+  transform: skewX(-7deg);
 }
