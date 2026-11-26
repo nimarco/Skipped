@@ -246,7 +246,7 @@ async function onCode(event) {
     return;
   }
   if (result === "repeat") {
-    ui.setFeedback("You already tried that one. It's on a sticky note.", "warn");
+    ui.setFeedback("You already tried that one. It's on the paper.", "warn");
     els.codeInput.select();
     return;
   }
@@ -265,7 +265,7 @@ async function onCode(event) {
     return;
   }
 
-  // Wrong: it goes on a sticky note and a minute passes.
+  // Wrong: it gets scrawled on the paper and a minute passes.
   sound.wrong();
   ui.setFeedback(`Invalid access code. (+${WRONG_GUESS_MINUTES} min)`, "error");
   ui.renderNotes(game.guesses, true);

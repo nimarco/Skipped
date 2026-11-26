@@ -1,7 +1,7 @@
 /*
  * ui.js
  * Everything that touches the page: the clock's LED digits, the light in
- * the room, sticky notes, the group chat, the laptop's quiz card, the wall
+ * the room, the scrap of paper with tried codes, the group chat, the laptop's quiz card, the wall
  * calendar and dialogs. It shows what game.js decided; it never decides
  * scores or time itself.
  */
@@ -17,6 +17,7 @@ export const els = {
   clock: $("clock"),
   clockDigits: $("clock-digits"),
   notes: $("notes"),
+  scrap: $("scrap"),
   chat: $("chat"),
   phone: $("phone"),
   phoneTime: $("phone-time"),
@@ -189,17 +190,21 @@ export function showResult({ won, points, line, code, ending }) {
   els.resultEnding.textContent = ending;
 }
 
-// ---------- Sticky notes ----------
+// ---------- The torn scrap of paper ----------
 
 export function renderNotes(guesses, animateLast = false) {
+  els.scrap.dataset.count = String(guesses.length);
   els.notes.replaceChildren(
     ...guesses.map((guess, i) => {
       const li = document.createElement("li");
-      li.className = "note";
       li.textContent = guess;
-      // a stable, hand-placed-looking tilt per note
-      const tilt = ((guess.length * 37 + i * 53) % 9) - 4;
-      li.style.setProperty("--tilt", `${tilt}deg`);
+      // sloppy but stable: each line sits a little crooked, the same way every reload
+      const seed = guess.length * 37 + i * 53;
+      li.style.setProperty("--tilt", `${(seed % 7) - 3}deg`);
+      li.style.setProperty("--nudge", `${(seed % 5) * 0.08}em`);
+      li.style.setProperty("--slash", `${-2 - (seed % 6)}deg`);
+      if (guess.length > 13) li.classList.add("is-longer");
+      else if (guess.length > 8) li.classList.add("is-long");
       if (animateLast && i === guesses.length - 1) li.classList.add("is-new");
       return li;
     }),

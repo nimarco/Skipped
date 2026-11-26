@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600;700&family=Reenie+Beanie&display=swap">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="js/main.js"></script>
 </head>
@@ -48,10 +48,13 @@
         <span class="calendar-grid" id="calendar-grid" aria-hidden="true"></span>
       </button>
 
-      <!-- Wrong codes go on sticky notes -->
-      <section class="notes" aria-labelledby="notes-title">
-        <h2 class="visually-hidden" id="notes-title">Codes you've tried</h2>
-        <ul class="notes-list" id="notes"></ul>
+      <!-- Wrong codes get scrawled on a torn scrap of notebook paper -->
+      <section class="scrap" id="scrap" data-count="0" aria-labelledby="scrap-title">
+        <span class="scrap-tape" aria-hidden="true"></span>
+        <div class="scrap-paper">
+          <h2 class="scrap-title" id="scrap-title"><span aria-hidden="true">tried:</span><span class="visually-hidden">Codes you've tried</span></h2>
+          <ol class="scrap-list" id="notes"></ol>
+        </div>
       </section>
 
       <!-- Nightstand + alarm clock -->
