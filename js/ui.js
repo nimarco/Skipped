@@ -426,6 +426,7 @@ export function renderStats(stats, makeups) {
 export function hideIntro({ instant = false } = {}) {
   els.intro.classList.add("is-gone");
   if (instant) els.intro.hidden = true;
+  els.scene.inert = false;
   document.body.classList.remove("is-asleep");
 }
 
@@ -437,5 +438,7 @@ export function ringIntro() {
 
 export function showIntro(minute) {
   els.introTime.textContent = `${formatTime(minute)} PM`;
+  // The room can't be clicked or tabbed into until you wake up.
+  els.scene.inert = true;
   document.body.classList.add("is-asleep");
 }

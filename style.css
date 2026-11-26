@@ -3,18 +3,11 @@
    Look: your bedroom seen from bed on a November afternoon. Warm wall,
    light coming through the blinds, a laptop on your knees, your phone on
    the blanket, a cheap red LED alarm clock on the nightstand.
-   The whole room is one 16:9 scene sized with container units (cqw), so
-   1cqw is always 1% of the room's width. Phones get a stacked layout.
+   The whole room is one 16:9 scene; every size in it is a multiple of
+   --u, 1% of the room's width. Phones get a stacked layout.
    ========================================================================== */
 
 /* ---------- Design tokens ---------- */
-
-@property --t {
-  /* Time of day: 0 at 1:05 PM, 1 at 2:20 PM. Registered so it can animate. */
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
 
 :root {
   color-scheme: light;
@@ -126,18 +119,31 @@ button {
 .scene {
   --t: 0;
   position: relative;
-  width: min(100vw, 177.78dvh);
+  /* --u is 1% of the room's width (the room is 16:9 and fits the window).
+     Every size in the room is a multiple of it, so the whole room scales
+     as one picture. (Container units would do this too, but the W3C CSS
+     validator doesn't know them yet.) */
+  --u: min(1vw, 1.7778vh);
+  width: calc(100 * var(--u));
   aspect-ratio: 16 / 9;
-  container-type: inline-size;
   overflow: hidden;
   overflow: clip; /* hidden still lets focus scroll it; clip doesn't */
   isolation: isolate;
-  font-size: 1cqw;
+  font-size: var(--u);
 }
 
-/* While the clock races forward, --t glides to its new value. */
-.scene.is-jumping {
-  transition: --t var(--jump-ms, 1700ms) cubic-bezier(0.65, 0, 0.35, 1);
+/* While the clock races forward, everything lit by the time of day glides
+   to its new look (--t itself can't animate, but what it drives can). */
+.scene.is-jumping .wall,
+.scene.is-jumping .sunlight,
+.scene.is-jumping .sky,
+.scene.is-jumping .screen::after {
+  transition:
+    left var(--jump-ms, 1700ms) cubic-bezier(0.65, 0, 0.35, 1),
+    transform var(--jump-ms, 1700ms) cubic-bezier(0.65, 0, 0.35, 1),
+    opacity var(--jump-ms, 1700ms) ease,
+    filter var(--jump-ms, 1700ms) ease,
+    background var(--jump-ms, 1700ms) ease;
 }
 
 /* ---------- The wall and the light ---------- */
@@ -147,9 +153,9 @@ button {
   inset: 0;
   background:
     /* the corner of the room on the left */
-    linear-gradient(90deg, rgb(0 0 0 / 0.14) 0 1.2cqw, transparent 6cqw),
+    linear-gradient(90deg, rgb(0 0 0 / 0.14) 0 calc(1.2 * var(--u)), transparent calc(6 * var(--u))),
     /* the ceiling's shadow */
-    linear-gradient(180deg, rgb(0 0 0 / 0.16), transparent 18cqw),
+    linear-gradient(180deg, rgb(0 0 0 / 0.16), transparent calc(18 * var(--u))),
     /* afternoon warmth grows as time passes */
     linear-gradient(180deg, rgb(var(--sun) / calc(0.05 + var(--t) * 0.16)), rgb(var(--sun) / calc(var(--t) * 0.1))),
     var(--wall);
@@ -160,10 +166,10 @@ button {
 /* Light through the blinds lands on the wall and slides left as the sun moves. */
 .sunlight {
   position: absolute;
-  top: 38cqw;
-  left: calc(8cqw + var(--t) * 46cqw);
-  width: 24cqw;
-  height: 20cqw;
+  top: calc(38 * var(--u));
+  left: calc(calc(8 * var(--u)) + var(--t) * calc(46 * var(--u)));
+  width: calc(24 * var(--u));
+  height: calc(20 * var(--u));
   transform: skewX(calc(38deg - var(--t) * 30deg)) skewY(-4deg);
   transform-origin: top left;
   mix-blend-mode: soft-light;
@@ -176,10 +182,10 @@ button {
   height: 100%;
   background: repeating-linear-gradient(
     180deg,
-    rgb(var(--sun) / 0.95) 0 1.05cqw,
-    transparent 1.05cqw 1.55cqw
+    rgb(var(--sun) / 0.95) 0 calc(1.05 * var(--u)),
+    transparent calc(1.05 * var(--u)) calc(1.55 * var(--u))
   );
-  filter: blur(0.25cqw);
+  filter: blur(calc(0.25 * var(--u)));
   mask-image: radial-gradient(ellipse at 50% 50%, #000 40%, transparent 75%);
 }
 
@@ -193,15 +199,15 @@ button {
 
 .window {
   position: absolute;
-  top: 2.4cqw;
-  left: 3cqw;
-  width: 20cqw;
-  height: 20cqw;
-  border: 1.1cqw solid #efe6d6;
-  border-radius: 0.3cqw;
+  top: calc(2.4 * var(--u));
+  left: calc(3 * var(--u));
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
+  border: calc(1.1 * var(--u)) solid #efe6d6;
+  border-radius: calc(0.3 * var(--u));
   box-shadow:
-    inset 0 0 0 0.25cqw #d7cbb6,
-    0 0.6cqw 1.2cqw rgb(0 0 0 / 0.18);
+    inset 0 0 0 calc(0.25 * var(--u)) #d7cbb6,
+    0 calc(0.6 * var(--u)) calc(1.2 * var(--u)) rgb(0 0 0 / 0.18);
   overflow: hidden;
   background: #9bc6e6;
 }
@@ -225,15 +231,15 @@ button {
 /* A late-autumn tree across the street */
 .tree-outside {
   position: absolute;
-  right: 1cqw;
-  bottom: -2cqw;
-  width: 16cqw;
-  height: 20cqw;
+  right: calc(1 * var(--u));
+  bottom: calc(-2 * var(--u));
+  width: calc(16 * var(--u));
+  height: calc(20 * var(--u));
   background:
-    radial-gradient(circle at 30% 35%, #c7742d 0 3cqw, transparent 3.1cqw),
-    radial-gradient(circle at 60% 25%, #b25a24 0 3.6cqw, transparent 3.7cqw),
-    radial-gradient(circle at 75% 50%, #d38b3a 0 3cqw, transparent 3.1cqw),
-    radial-gradient(circle at 45% 55%, #9b4b22 0 3.4cqw, transparent 3.5cqw),
+    radial-gradient(circle at 30% 35%, #c7742d 0 calc(3 * var(--u)), transparent calc(3.1 * var(--u))),
+    radial-gradient(circle at 60% 25%, #b25a24 0 calc(3.6 * var(--u)), transparent calc(3.7 * var(--u))),
+    radial-gradient(circle at 75% 50%, #d38b3a 0 calc(3 * var(--u)), transparent calc(3.1 * var(--u))),
+    radial-gradient(circle at 45% 55%, #9b4b22 0 calc(3.4 * var(--u)), transparent calc(3.5 * var(--u))),
     linear-gradient(90deg, transparent 47%, #4b3324 47% 53%, transparent 53%);
   opacity: 0.85;
 }
@@ -243,8 +249,8 @@ button {
   inset: 0;
   display: none;
   background:
-    repeating-linear-gradient(100deg, transparent 0 0.9cqw, rgb(255 255 255 / 0.5) 0.9cqw 0.98cqw, transparent 0.98cqw 2.2cqw);
-  background-size: 6cqw 6cqw;
+    repeating-linear-gradient(100deg, transparent 0 calc(0.9 * var(--u)), rgb(255 255 255 / 0.5) calc(0.9 * var(--u)) calc(0.98 * var(--u)), transparent calc(0.98 * var(--u)) calc(2.2 * var(--u)));
+  background-size: calc(6 * var(--u)) calc(6 * var(--u));
   animation: rain 0.45s linear infinite;
   opacity: 0.65;
 }
@@ -255,29 +261,29 @@ button {
 
 .scene[data-weather="snow"] .rain {
   display: block;
-  background: radial-gradient(circle, #fff 0 0.18cqw, transparent 0.22cqw) 0 0 / 2.2cqw 2.2cqw;
+  background: radial-gradient(circle, #fff 0 calc(0.18 * var(--u)), transparent calc(0.22 * var(--u))) 0 0 / calc(2.2 * var(--u)) calc(2.2 * var(--u));
   animation: snow 3s linear infinite;
 }
 
 @keyframes rain {
-  to { background-position: -1cqw 6cqw; }
+  to { background-position: calc(-1 * var(--u)) calc(6 * var(--u)); }
 }
 
 @keyframes snow {
-  to { background-position: 1cqw 2.2cqw; }
+  to { background-position: calc(1 * var(--u)) calc(2.2 * var(--u)); }
 }
 
 /* Horizontal blinds, tilted half open: light slats with sky between them. */
 .blinds {
   position: absolute;
-  inset: 0 0 4cqw;
+  inset: 0 0 calc(4 * var(--u));
   background: repeating-linear-gradient(
     180deg,
-    #f4eee4 0 0.95cqw,
-    #d9cfc0 0.95cqw 1.15cqw,
-    transparent 1.15cqw 1.65cqw
+    #f4eee4 0 calc(0.95 * var(--u)),
+    #d9cfc0 calc(0.95 * var(--u)) calc(1.15 * var(--u)),
+    transparent calc(1.15 * var(--u)) calc(1.65 * var(--u))
   );
-  box-shadow: 0 0.4cqw 0.6cqw rgb(0 0 0 / 0.12);
+  box-shadow: 0 calc(0.4 * var(--u)) calc(0.6 * var(--u)) rgb(0 0 0 / 0.12);
   transition: background-size 1.2s var(--ease-out);
 }
 
@@ -287,52 +293,52 @@ button {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -0.8cqw;
-  height: 0.8cqw;
+  bottom: calc(-0.8 * var(--u));
+  height: calc(0.8 * var(--u));
   background: #e8e0d2;
-  border-radius: 0.1cqw;
-  box-shadow: 0 0.2cqw 0.3cqw rgb(0 0 0 / 0.2);
+  border-radius: calc(0.1 * var(--u));
+  box-shadow: 0 calc(0.2 * var(--u)) calc(0.3 * var(--u)) rgb(0 0 0 / 0.2);
 }
 
 .blind-cord {
   position: absolute;
   top: 0;
-  right: 2cqw;
-  width: 0.18cqw;
-  height: 16cqw;
+  right: calc(2 * var(--u));
+  width: calc(0.18 * var(--u));
+  height: calc(16 * var(--u));
   background: #cfc4b2;
 }
 
 .blind-cord::after {
   content: "";
   position: absolute;
-  bottom: -0.6cqw;
-  left: -0.3cqw;
-  width: 0.8cqw;
-  height: 1cqw;
+  bottom: calc(-0.6 * var(--u));
+  left: calc(-0.3 * var(--u));
+  width: calc(0.8 * var(--u));
+  height: calc(1 * var(--u));
   border-radius: 40%;
   background: #cfc4b2;
 }
 
 .poster {
   position: absolute;
-  top: 1.2cqw;
-  left: 41cqw;
-  width: 13cqw;
-  height: 3.6cqw;
+  top: calc(1.2 * var(--u));
+  left: calc(41 * var(--u));
+  width: calc(13 * var(--u));
+  height: calc(3.6 * var(--u));
   background: #a51417;
   clip-path: polygon(0 0, 100% 50%, 0 100%);
   transform: rotate(-3deg);
-  box-shadow: 0 0.3cqw 0.4cqw rgb(0 0 0 / 0.2);
+  box-shadow: 0 calc(0.3 * var(--u)) calc(0.4 * var(--u)) rgb(0 0 0 / 0.2);
 }
 
 .poster span {
   position: absolute;
   top: 50%;
-  left: 1.4cqw;
+  left: calc(1.4 * var(--u));
   transform: translateY(-50%);
   color: #fff;
-  font: 700 1.5cqw/1 var(--font-ui);
+  font: 700 calc(1.5 * var(--u))/1 var(--font-ui);
   letter-spacing: 0.05em;
 }
 
@@ -340,53 +346,53 @@ button {
 
 .calendar {
   position: absolute;
-  top: 1.6cqw;
-  left: 79cqw;
-  width: 12cqw;
-  padding: 0 0 0.9cqw;
+  top: calc(1.6 * var(--u));
+  left: calc(79 * var(--u));
+  width: calc(12 * var(--u));
+  padding: 0 0 calc(0.9 * var(--u));
   border: 0;
-  border-radius: 0.2cqw;
+  border-radius: calc(0.2 * var(--u));
   background: #fbf8f1;
-  box-shadow: 0 0.5cqw 1cqw rgb(0 0 0 / 0.2), 0 0.1cqw 0.2cqw rgb(0 0 0 / 0.15);
+  box-shadow: 0 calc(0.5 * var(--u)) calc(1 * var(--u)) rgb(0 0 0 / 0.2), 0 calc(0.1 * var(--u)) calc(0.2 * var(--u)) rgb(0 0 0 / 0.15);
   transform: rotate(1.5deg);
   transition: transform 0.25s var(--ease-out), box-shadow 0.25s;
   text-align: center;
 }
 
 .calendar:hover {
-  transform: rotate(0.5deg) translateY(-0.3cqw);
-  box-shadow: 0 0.9cqw 1.6cqw rgb(0 0 0 / 0.25);
+  transform: rotate(0.5deg) translateY(calc(-0.3 * var(--u)));
+  box-shadow: 0 calc(0.9 * var(--u)) calc(1.6 * var(--u)) rgb(0 0 0 / 0.25);
 }
 
 .calendar-pin {
   position: absolute;
-  top: -0.5cqw;
+  top: calc(-0.5 * var(--u));
   left: 50%;
-  width: 1cqw;
-  height: 1cqw;
+  width: calc(1 * var(--u));
+  height: calc(1 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #ff7a6b, #b3261e);
   transform: translateX(-50%);
-  box-shadow: 0 0.2cqw 0.3cqw rgb(0 0 0 / 0.35);
+  box-shadow: 0 calc(0.2 * var(--u)) calc(0.3 * var(--u)) rgb(0 0 0 / 0.35);
 }
 
 /* The month's photo: a tree, since the quiz codes always are. */
 .calendar-photo {
   display: block;
-  height: 4cqw;
-  border-radius: 0.2cqw 0.2cqw 0 0;
+  height: calc(4 * var(--u));
+  border-radius: calc(0.2 * var(--u)) calc(0.2 * var(--u)) 0 0;
   background:
-    radial-gradient(ellipse at 50% 42%, #3f7a3a 0 2.4cqw, transparent 2.5cqw),
-    radial-gradient(ellipse at 38% 52%, #4f8a3f 0 1.8cqw, transparent 1.9cqw),
-    radial-gradient(ellipse at 62% 52%, #356b33 0 1.8cqw, transparent 1.9cqw),
+    radial-gradient(ellipse at 50% 42%, #3f7a3a 0 calc(2.4 * var(--u)), transparent calc(2.5 * var(--u))),
+    radial-gradient(ellipse at 38% 52%, #4f8a3f 0 calc(1.8 * var(--u)), transparent calc(1.9 * var(--u))),
+    radial-gradient(ellipse at 62% 52%, #356b33 0 calc(1.8 * var(--u)), transparent calc(1.9 * var(--u))),
     linear-gradient(90deg, transparent 48.5%, #5a3d25 48.5% 51.5%, transparent 51.5%) 0 0 / 100% 100%,
     linear-gradient(180deg, #a9d3ef 0 72%, #9cc27a 72%);
 }
 
 .calendar-month {
   display: block;
-  margin: 0.4cqw 0 0.2cqw;
-  font: 700 1.05cqw/1 var(--font-ui);
+  margin: calc(0.4 * var(--u)) 0 calc(0.2 * var(--u));
+  font: 700 calc(1.05 * var(--u))/1 var(--font-ui);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #7a2b20;
@@ -395,9 +401,9 @@ button {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.15cqw 0;
-  padding: 0 0.7cqw;
-  font: 500 0.62cqw/1.45 var(--font-ui);
+  gap: calc(0.15 * var(--u)) 0;
+  padding: 0 calc(0.7 * var(--u));
+  font: 500 calc(0.62 * var(--u))/1.45 var(--font-ui);
   color: #50463c;
 }
 
@@ -406,8 +412,8 @@ button {
 }
 
 .calendar-grid .day.is-today {
-  outline: 0.1cqw solid #50463c;
-  border-radius: 0.15cqw;
+  outline: calc(0.1 * var(--u)) solid #50463c;
+  border-radius: calc(0.15 * var(--u));
 }
 
 /* Marker on paper: a red circle for a quiz you got, an X for one you missed. */
@@ -415,8 +421,8 @@ button {
 .calendar-grid .day.is-lost::after {
   content: "";
   position: absolute;
-  inset: -0.05cqw 0.05cqw;
-  border: 0.14cqw solid #d0342c;
+  inset: calc(-0.05 * var(--u)) calc(0.05 * var(--u));
+  border: calc(0.14 * var(--u)) solid #d0342c;
   border-radius: 50%;
   transform: rotate(-8deg);
 }
@@ -438,15 +444,15 @@ button {
 
 .notes {
   position: absolute;
-  top: 24.6cqw;
-  left: 3cqw;
-  width: 22cqw;
+  top: calc(24.6 * var(--u));
+  left: calc(3 * var(--u));
+  width: calc(22 * var(--u));
 }
 
 .notes-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5cqw;
+  gap: calc(0.5 * var(--u));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -458,19 +464,19 @@ button {
 }
 
 .note {
-  width: 5cqw;
-  height: 5cqw;
-  padding: 0.4cqw;
+  width: calc(5 * var(--u));
+  height: calc(5 * var(--u));
+  padding: calc(0.4 * var(--u));
   display: grid;
   place-items: center;
   background: linear-gradient(180deg, color-mix(in srgb, var(--note) 85%, #fff) 0 18%, var(--note) 18%);
   color: var(--ink);
-  font: 700 1.3cqw/1 var(--font-hand);
+  font: 700 calc(1.3 * var(--u))/1 var(--font-hand);
   text-align: center;
   overflow-wrap: anywhere;
-  box-shadow: 0 0.35cqw 0.5cqw rgb(0 0 0 / 0.18);
+  box-shadow: 0 calc(0.35 * var(--u)) calc(0.5 * var(--u)) rgb(0 0 0 / 0.18);
   transform: rotate(var(--tilt, -2deg));
-  text-decoration: line-through 0.12cqw rgb(208 52 44 / 0.75);
+  text-decoration: line-through calc(0.12 * var(--u)) rgb(208 52 44 / 0.75);
 }
 
 .note.is-new {
@@ -481,68 +487,68 @@ button {
 .note:nth-child(3n + 3) { --note: #b8f0c9; }
 
 @keyframes slap {
-  from { transform: rotate(var(--tilt)) scale(1.5) translateY(-2cqw); opacity: 0; }
+  from { transform: rotate(var(--tilt)) scale(1.5) translateY(calc(-2 * var(--u))); opacity: 0; }
 }
 
 /* ---------- Nightstand + clock ---------- */
 
 .nightstand {
   position: absolute;
-  top: 42cqw;
-  left: -1cqw;
-  width: 21cqw;
-  height: 22cqw;
+  top: calc(42 * var(--u));
+  left: calc(-1 * var(--u));
+  width: calc(21 * var(--u));
+  height: calc(22 * var(--u));
   background:
-    linear-gradient(180deg, #a06d48 0 1.3cqw, var(--wood) 1.3cqw 1.8cqw, var(--wood-dark) 1.8cqw 2.3cqw, var(--wood) 2.3cqw),
+    linear-gradient(180deg, #a06d48 0 calc(1.3 * var(--u)), var(--wood) calc(1.3 * var(--u)) calc(1.8 * var(--u)), var(--wood-dark) calc(1.8 * var(--u)) calc(2.3 * var(--u)), var(--wood) calc(2.3 * var(--u))),
     var(--wood);
-  border-radius: 0.4cqw 0.4cqw 0 0;
-  box-shadow: 0 -0.2cqw 0.6cqw rgb(0 0 0 / 0.2);
+  border-radius: calc(0.4 * var(--u)) calc(0.4 * var(--u)) 0 0;
+  box-shadow: 0 calc(-0.2 * var(--u)) calc(0.6 * var(--u)) rgb(0 0 0 / 0.2);
 }
 
 .nightstand::after {
   /* drawer handle */
   content: "";
   position: absolute;
-  top: 6cqw;
-  left: 8.5cqw;
-  width: 4cqw;
-  height: 0.7cqw;
-  border-radius: 0.4cqw;
+  top: calc(6 * var(--u));
+  left: calc(8.5 * var(--u));
+  width: calc(4 * var(--u));
+  height: calc(0.7 * var(--u));
+  border-radius: calc(0.4 * var(--u));
   background: #c9a46a;
 }
 
 .mug {
   position: absolute;
-  top: -4cqw;
-  left: 14.5cqw;
-  width: 3.4cqw;
-  height: 4.2cqw;
-  border-radius: 0.2cqw 0.2cqw 0.6cqw 0.6cqw;
+  top: calc(-4 * var(--u));
+  left: calc(14.5 * var(--u));
+  width: calc(3.4 * var(--u));
+  height: calc(4.2 * var(--u));
+  border-radius: calc(0.2 * var(--u)) calc(0.2 * var(--u)) calc(0.6 * var(--u)) calc(0.6 * var(--u));
   background: linear-gradient(90deg, #e9e2d6, #fff 40%, #d8cfc1);
 }
 
 .mug::after {
   content: "";
   position: absolute;
-  top: 0.9cqw;
-  right: -1.1cqw;
-  width: 1.4cqw;
-  height: 1.8cqw;
-  border: 0.45cqw solid #e2dacd;
+  top: calc(0.9 * var(--u));
+  right: calc(-1.1 * var(--u));
+  width: calc(1.4 * var(--u));
+  height: calc(1.8 * var(--u));
+  border: calc(0.45 * var(--u)) solid #e2dacd;
   border-left: 0;
-  border-radius: 0 1cqw 1cqw 0;
+  border-radius: 0 calc(1 * var(--u)) calc(1 * var(--u)) 0;
 }
 
 .clock {
   position: absolute;
-  top: 36.2cqw;
-  left: 1.6cqw;
-  width: 12.5cqw;
-  height: 6.2cqw;
-  padding: 0.6cqw;
-  border-radius: 1cqw 1cqw 0.5cqw 0.5cqw;
+  top: calc(36.2 * var(--u));
+  left: calc(1.6 * var(--u));
+  width: calc(12.5 * var(--u));
+  height: calc(6.2 * var(--u));
+  padding: calc(0.6 * var(--u));
+  border-radius: calc(1 * var(--u)) calc(1 * var(--u)) calc(0.5 * var(--u)) calc(0.5 * var(--u));
   background: linear-gradient(180deg, #2b2b2e, #151517);
-  box-shadow: 0 0.5cqw 0.8cqw rgb(0 0 0 / 0.35), inset 0 0.15cqw 0 rgb(255 255 255 / 0.08);
+  box-shadow: 0 calc(0.5 * var(--u)) calc(0.8 * var(--u)) rgb(0 0 0 / 0.35), inset 0 calc(0.15 * var(--u)) 0 rgb(255 255 255 / 0.08);
 }
 
 .clock-face {
@@ -550,17 +556,17 @@ button {
   height: 100%;
   display: grid;
   place-items: center;
-  border-radius: 0.5cqw;
+  border-radius: calc(0.5 * var(--u));
   background: #120606;
-  box-shadow: inset 0 0 0.6cqw #000;
+  box-shadow: inset 0 0 calc(0.6 * var(--u)) #000;
 }
 
 .clock-digits {
   display: flex;
   align-items: center;
-  gap: 0.25cqw;
-  height: 3.4cqw;
-  filter: drop-shadow(0 0 0.35cqw rgb(255 40 30 / 0.75));
+  gap: calc(0.25 * var(--u));
+  height: calc(3.4 * var(--u));
+  filter: drop-shadow(0 0 calc(0.35 * var(--u)) rgb(255 40 30 / 0.75));
 }
 
 .clock-digits svg {
@@ -584,14 +590,14 @@ button {
 .clock-ampm,
 .clock-alarm {
   position: absolute;
-  left: 0.55cqw;
-  font: 700 0.6cqw/1 var(--font-ui);
+  left: calc(0.55 * var(--u));
+  font: 700 calc(0.6 * var(--u))/1 var(--font-ui);
   color: var(--led);
   letter-spacing: 0.05em;
 }
 
-.clock-ampm { top: 0.6cqw; }
-.clock-alarm { bottom: 0.6cqw; opacity: 0.25; }
+.clock-ampm { top: calc(0.6 * var(--u)); }
+.clock-alarm { bottom: calc(0.6 * var(--u)); opacity: 0.25; }
 
 .clock.is-ringing .clock-alarm {
   opacity: 1;
@@ -614,30 +620,30 @@ button {
 
 .blanket {
   position: absolute;
-  left: -4cqw;
-  right: -4cqw;
-  top: 40cqw;
-  bottom: -4cqw;
+  left: calc(-4 * var(--u));
+  right: calc(-4 * var(--u));
+  top: calc(40 * var(--u));
+  bottom: calc(-4 * var(--u));
   border-radius: 40% 40% 0 0 / 18% 18% 0 0;
   background:
     /* folds */
-    radial-gradient(ellipse at 15% 30%, rgb(255 255 255 / 0.14) 0 6cqw, transparent 6.5cqw),
-    radial-gradient(ellipse at 85% 45%, rgb(0 0 0 / 0.18) 0 7cqw, transparent 8cqw),
+    radial-gradient(ellipse at 15% 30%, rgb(255 255 255 / 0.14) 0 calc(6 * var(--u)), transparent calc(6.5 * var(--u))),
+    radial-gradient(ellipse at 85% 45%, rgb(0 0 0 / 0.18) 0 calc(7 * var(--u)), transparent calc(8 * var(--u))),
     /* a soft plaid */
-    repeating-linear-gradient(90deg, transparent 0 3.2cqw, rgb(255 255 255 / 0.05) 3.2cqw 3.8cqw),
-    repeating-linear-gradient(0deg, transparent 0 3.2cqw, rgb(0 0 0 / 0.07) 3.2cqw 3.8cqw),
+    repeating-linear-gradient(90deg, transparent 0 calc(3.2 * var(--u)), rgb(255 255 255 / 0.05) calc(3.2 * var(--u)) calc(3.8 * var(--u))),
+    repeating-linear-gradient(0deg, transparent 0 calc(3.2 * var(--u)), rgb(0 0 0 / 0.07) calc(3.2 * var(--u)) calc(3.8 * var(--u))),
     linear-gradient(180deg, var(--blanket-light), var(--blanket) 30%, var(--blanket-dark));
-  box-shadow: 0 -0.8cqw 1.6cqw rgb(0 0 0 / 0.25);
+  box-shadow: 0 calc(-0.8 * var(--u)) calc(1.6 * var(--u)) rgb(0 0 0 / 0.25);
 }
 
 /* Your knees under the blanket, holding up the laptop: one soft hill,
    lit from the window on the left, with the laptop's shadow on top. */
 .knees {
   position: absolute;
-  left: 20cqw;
-  top: -3cqw;
-  width: 60cqw;
-  height: 12cqw;
+  left: calc(20 * var(--u));
+  top: calc(-3 * var(--u));
+  width: calc(60 * var(--u));
+  height: calc(12 * var(--u));
   border-radius: 50% 50% 0 0 / 60% 60% 0 0;
   background:
     radial-gradient(ellipse 40% 18% at 50% 16%, rgb(0 0 0 / 0.2), transparent 100%),
@@ -650,29 +656,29 @@ button {
 
 .laptop {
   position: absolute;
-  top: 5cqw;
-  left: 26cqw;
-  width: 45cqw;
-  filter: drop-shadow(0 1.4cqw 1.6cqw rgb(0 0 0 / 0.35));
+  top: calc(5 * var(--u));
+  left: calc(26 * var(--u));
+  width: calc(45 * var(--u));
+  filter: drop-shadow(0 calc(1.4 * var(--u)) calc(1.6 * var(--u)) rgb(0 0 0 / 0.35));
 }
 
 .laptop-lid {
   position: relative;
-  padding: 1.3cqw 1.1cqw 1.6cqw;
-  border-radius: 1.3cqw 1.3cqw 0.3cqw 0.3cqw;
+  padding: calc(1.3 * var(--u)) calc(1.1 * var(--u)) calc(1.6 * var(--u));
+  border-radius: calc(1.3 * var(--u)) calc(1.3 * var(--u)) calc(0.3 * var(--u)) calc(0.3 * var(--u));
   background: linear-gradient(180deg, #2a2b30, #1b1c20);
-  box-shadow: inset 0 0 0 0.12cqw #3a3c42;
+  box-shadow: inset 0 0 0 calc(0.12 * var(--u)) #3a3c42;
 }
 
 .laptop-cam {
   position: absolute;
-  top: 0.45cqw;
+  top: calc(0.45 * var(--u));
   left: 50%;
-  width: 0.45cqw;
-  height: 0.45cqw;
+  width: calc(0.45 * var(--u));
+  height: calc(0.45 * var(--u));
   border-radius: 50%;
   background: #0b0c0f;
-  box-shadow: inset 0 0 0.1cqw #3c4a66;
+  box-shadow: inset 0 0 calc(0.1 * var(--u)) #3c4a66;
   transform: translateX(-50%);
 }
 
@@ -680,9 +686,9 @@ button {
   position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border-radius: 0.3cqw;
+  border-radius: calc(0.3 * var(--u));
   background: var(--bs-light);
-  font-size: 1.02cqw;
+  font-size: calc(1.02 * var(--u));
   display: flex;
   flex-direction: column;
 }
@@ -698,18 +704,18 @@ button {
 
 .laptop-base {
   position: relative;
-  height: 2cqw;
-  margin: 0 -2.4cqw;
-  border-radius: 0 0 1.6cqw 1.6cqw;
+  height: calc(2 * var(--u));
+  margin: 0 calc(-2.4 * var(--u));
+  border-radius: 0 0 calc(1.6 * var(--u)) calc(1.6 * var(--u));
   background: linear-gradient(180deg, #c9ccd2, #9da1a9 55%, #7d8189);
   clip-path: polygon(1.2% 0, 98.8% 0, 100% 100%, 0 100%);
 }
 
 .laptop-notch {
-  width: 8cqw;
-  height: 0.5cqw;
+  width: calc(8 * var(--u));
+  height: calc(0.5 * var(--u));
   margin: 0 auto;
-  border-radius: 0 0 0.6cqw 0.6cqw;
+  border-radius: 0 0 calc(0.6 * var(--u)) calc(0.6 * var(--u));
   background: #8a8e96;
 }
 
@@ -1021,12 +1027,12 @@ button {
 
 .phone {
   position: absolute;
-  top: 15.6cqw;
-  left: 75cqw;
-  width: 18.5cqw;
+  top: calc(15.6 * var(--u));
+  left: calc(75 * var(--u));
+  width: calc(18.5 * var(--u));
   transform: rotate(3deg);
   transform-origin: 50% 90%;
-  filter: drop-shadow(0 1.2cqw 1.2cqw rgb(0 0 0 / 0.4));
+  filter: drop-shadow(0 calc(1.2 * var(--u)) calc(1.2 * var(--u)) rgb(0 0 0 / 0.4));
 }
 
 .phone.is-buzzing {
@@ -1035,30 +1041,30 @@ button {
 
 @keyframes buzz {
   0%, 100% { transform: rotate(3deg) translate(0, 0); }
-  25% { transform: rotate(2.2deg) translate(-0.25cqw, 0.1cqw); }
-  75% { transform: rotate(3.8deg) translate(0.25cqw, -0.1cqw); }
+  25% { transform: rotate(2.2deg) translate(calc(-0.25 * var(--u)), calc(0.1 * var(--u))); }
+  75% { transform: rotate(3.8deg) translate(calc(0.25 * var(--u)), calc(-0.1 * var(--u))); }
 }
 
 @keyframes shake {
-  25% { transform: translateX(-0.12cqw) rotate(-0.6deg); }
-  75% { transform: translateX(0.12cqw) rotate(0.6deg); }
+  25% { transform: translateX(calc(-0.12 * var(--u))) rotate(-0.6deg); }
+  75% { transform: translateX(calc(0.12 * var(--u))) rotate(0.6deg); }
 }
 
 .phone-body {
-  padding: 0.55cqw;
-  border-radius: 2.6cqw;
+  padding: calc(0.55 * var(--u));
+  border-radius: calc(2.6 * var(--u));
   background: linear-gradient(135deg, #3a3d44, #17181c 60%);
-  box-shadow: inset 0 0 0 0.15cqw #4b4f58;
+  box-shadow: inset 0 0 0 calc(0.15 * var(--u)) #4b4f58;
 }
 
 .phone-screen {
   display: flex;
   flex-direction: column;
-  height: 36.4cqw;
+  height: calc(36.4 * var(--u));
   overflow: hidden;
-  border-radius: 2.1cqw;
+  border-radius: calc(2.1 * var(--u));
   background: var(--chat-bg);
-  font-size: 0.98cqw;
+  font-size: calc(0.98 * var(--u));
 }
 
 .phone-status {
@@ -1372,7 +1378,7 @@ button {
 }
 
 @keyframes drift {
-  50% { filter: blur(0.12cqw) brightness(0.92); }
+  50% { filter: blur(calc(0.12 * var(--u))) brightness(0.92); }
 }
 
 /* ---------- Waking up ---------- */
@@ -1399,7 +1405,7 @@ body.is-asleep .clock {
 
 body.is-asleep .blinds {
   /* closed tight */
-  background: repeating-linear-gradient(180deg, #e6ddcf 0 0.95cqw, #cbbfae 0.95cqw 1.1cqw);
+  background: repeating-linear-gradient(180deg, #e6ddcf 0 calc(0.95 * var(--u)), #cbbfae calc(0.95 * var(--u)) calc(1.1 * var(--u)));
 }
 
 .intro {
@@ -1867,7 +1873,9 @@ body.is-asleep .blinds {
     transition-duration: 0.01ms !important;
   }
 
-  .scene.is-jumping {
+  .scene.is-jumping .wall,
+  .scene.is-jumping .sunlight,
+  .scene.is-jumping .sky {
     transition: none;
   }
 }
@@ -1881,4 +1889,8 @@ body.is-asleep .blinds {
 
 .clock-digits svg {
   transform: skewX(-7deg);
+}
+
+.intro.is-gone .intro-button {
+  animation: none;
 }

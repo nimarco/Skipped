@@ -207,8 +207,8 @@ async function askForHint() {
   busy = true;
   updateHintButton();
   sound.unlock();
-  const asks = ["another hint pls 🙏", "one more hint?", "pls I'm begging", "need another one", "help 😭"];
-  await receive({ from: "me", text: asks[Math.min(game.hints.length - 1, asks.length - 1)] });
+  const asks = ["another hint pls 🙏", "one more hint?", "pls I'm begging", "need another one", "help 😭", "I have nothing", "ok one more", "last one I swear"];
+  await receive({ from: "me", text: asks[(game.hints.length - 1) % asks.length] });
 
   const from = game.minute;
   let type = takeHint(game);
