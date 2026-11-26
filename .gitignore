@@ -1,0 +1,8 @@
+reference/
+lab/
+HANDOFF.md
+CLAUDE.md
+PLAN.md
+.claude/
+.DS_Store
+*.zip

@@ -1,0 +1,54 @@
+/* ==========================================================================
+   Skipped — style.css
+   Look: your bedroom seen from bed, early afternoon, blinds half closed.
+   Placeholder tokens until the room design is chosen in Phase 3.
+   ========================================================================== */
+
+/* ---------- Design tokens ---------- */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #15130f;
+  --text: #f1e9da;
+  --text-dim: #a79e8e;
+  --clock-red: #ff3b2f;
+
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---------- Base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+.room {
+  display: grid;
+  place-content: center;
+  min-height: 100dvh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin: 0.5rem 0 0;
+  color: var(--text-dim);
+}
