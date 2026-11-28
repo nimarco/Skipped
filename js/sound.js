@@ -66,7 +66,8 @@ export function startAlarm() {
 
 // The phone vibrating against the blanket: a low, rattly hum.
 export function buzz() {
-  navigator.vibrate?.([90, 70, 90]);
+  // Phones only allow vibration after a real tap on the page.
+  if (navigator.userActivation?.hasBeenActive ?? true) navigator.vibrate?.([90, 70, 90]);
   const c = audioContext();
   if (!c || muted) return;
   for (const start of [0, 0.22]) {
