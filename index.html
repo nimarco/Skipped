@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Skipped · Guess today's quiz code</title>
   <meta name="description" content="You skipped class and missed the quiz code. Your friends can't just text it to you, so they send hints from the back row. Guess today's word before class ends at 2:20.">
-  <meta name="theme-color" content="#2a2420">
+  <meta name="theme-color" content="#191411">
   <meta property="og:title" content="Skipped · Guess today's quiz code">
   <meta property="og:description" content="You overslept. Your friends are texting hints from class. Guess the quiz code before 2:20.">
   <meta property="og:type" content="website">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600;700&family=Reenie+Beanie&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Reenie+Beanie&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="js/main.js"></script>
 </head>
@@ -24,152 +24,253 @@
     The quiz code wh—
     Nice try. Ask your friends.
   -->
-  <h1 class="visually-hidden">Skipped: guess today's quiz code</h1>
+  <header class="bar" id="bar">
+    <a class="bar-brand" href="#scene"><span class="bar-led" aria-hidden="true"></span>Skipped</a>
+    <p class="bar-day" id="bar-day">Day 1</p>
+    <nav class="bar-nav" aria-label="Site">
+      <a class="bar-btn" href="#how">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.6"/><path d="M12 16.9v.2"/></svg>
+        <span class="bar-label">How to play</span>
+      </a>
+      <a class="bar-btn" href="#record">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19.5v-6M10 19.5v-11M15 19.5v-8M20 19.5V5"/><path d="M3 19.5h18.5"/></svg>
+        <span class="bar-label">Stats</span>
+      </a>
+      <a class="bar-btn" href="#past">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M13.5 13l-2.5 2.2 2.5 2.2"/></svg>
+        <span class="bar-label">Past days</span>
+      </a>
+      <button class="bar-btn" id="mute" type="button" aria-pressed="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="snd-body" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="snd-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11"/><path class="snd-off" d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></svg>
+        <span class="bar-label">Sound</span>
+      </button>
+    </nav>
+  </header>
 
-  <div class="stage">
-    <div class="scene" id="scene" data-weather="clear">
+  <main id="main">
+    <section class="room" id="scene" data-weather="clear" aria-labelledby="room-title">
+      <h1 class="visually-hidden" id="room-title">Skipped: your bedroom, seen from bed</h1>
 
-      <!-- The far wall and the window -->
       <div class="wall" aria-hidden="true"></div>
-      <div class="window" aria-hidden="true">
-        <div class="sky"></div>
-        <div class="tree-outside"></div>
-        <div class="rain"></div>
-        <div class="blinds"></div>
-        <div class="blind-cord"></div>
-      </div>
-      <div class="poster" aria-hidden="true"><span>WashU</span></div>
 
-      <!-- The wall calendar: stats -->
-      <button class="calendar" id="calendar" type="button" aria-label="Wall calendar: your stats and make-up quizzes">
-        <span class="calendar-pin" aria-hidden="true"></span>
-        <span class="calendar-photo" aria-hidden="true"></span>
+      <!-- The blinds are shut; the weather shows through one bent slat. -->
+      <div class="window" id="window" role="img" aria-label="Closed window blinds">
+        <div class="window-glass"><div class="window-rain"></div></div>
+        <div class="window-slats"></div>
+        <div class="window-cord"></div>
+      </div>
+
+      <!-- Wall calendar: click it for your record -->
+      <button class="calendar" id="calendar" type="button" aria-label="Wall calendar: your record">
+        <span class="calendar-rings" aria-hidden="true"></span>
         <span class="calendar-month" id="calendar-month">November</span>
         <span class="calendar-grid" id="calendar-grid" aria-hidden="true"></span>
+        <span class="calendar-note" id="calendar-note" aria-hidden="true"></span>
       </button>
 
       <!-- Wrong codes get scrawled on a torn scrap of notebook paper -->
       <section class="scrap" id="scrap" data-count="0" aria-labelledby="scrap-title">
         <span class="scrap-tape" aria-hidden="true"></span>
-        <div class="scrap-paper">
-          <h2 class="scrap-title" id="scrap-title"><span aria-hidden="true">tried:</span><span class="visually-hidden">Codes you've tried</span></h2>
-          <ol class="scrap-list" id="notes"></ol>
-        </div>
+        <h2 class="visually-hidden" id="scrap-title">Codes you've tried</h2>
+        <ol class="scrap-list" id="notes"></ol>
       </section>
 
-      <!-- Nightstand + alarm clock -->
-      <div class="nightstand" aria-hidden="true">
-        <div class="mug"></div>
-      </div>
-      <div class="clock" id="clock" role="timer" aria-live="off" aria-label="Alarm clock">
-        <div class="clock-face">
-          <span class="clock-ampm" aria-hidden="true">PM</span>
-          <span class="clock-digits" id="clock-digits" aria-hidden="true"></span>
-          <span class="clock-alarm" aria-hidden="true">ALM</span>
-        </div>
+      <!-- Nightstand and the red LED alarm clock -->
+      <div class="nightstand" aria-hidden="true"></div>
+      <div class="clock" id="clock" role="timer" aria-label="Alarm clock">
+        <span class="clock-digits" id="clock-digits" aria-hidden="true"></span>
+        <span class="clock-pm" aria-hidden="true">PM</span>
+        <span class="clock-alarm" aria-hidden="true">ALM</span>
       </div>
 
-      <!-- The bed, from where you're lying -->
-      <div class="blanket" aria-hidden="true"><div class="knees"></div></div>
-      <div class="sunlight" aria-hidden="true"><div class="sunlight-slats"></div></div>
+      <!-- The duvet over your legs -->
+      <div class="duvet" aria-hidden="true">
+        <svg class="duvet-folds" viewBox="0 0 1000 400" preserveAspectRatio="none">
+          <defs>
+            <filter id="soft" filterUnits="userSpaceOnUse" x="-200" y="-200" width="1400" height="800"><feGaussianBlur stdDeviation="9"/></filter>
+            <filter id="softer" filterUnits="userSpaceOnUse" x="-200" y="-200" width="1400" height="800"><feGaussianBlur stdDeviation="22"/></filter>
+            <radialGradient id="mound" cx="55%" cy="30%" r="70%">
+              <stop offset="0" stop-color="#fffaf0" stop-opacity=".55"/>
+              <stop offset=".55" stop-color="#fffaf0" stop-opacity=".12"/>
+              <stop offset="1" stop-color="#fffaf0" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <path class="duvet-base" d="M0,46 C70,30 150,22 240,30 C300,36 330,20 400,16 C470,12 560,10 640,18 C700,24 760,14 840,20 C900,25 950,34 1000,42 L1000,400 L0,400 Z"/>
+          <path d="M0,58 C90,40 170,34 250,42 C320,48 340,30 410,27 C480,24 560,22 640,30 C710,36 770,26 850,32 C910,37 960,46 1000,54" fill="none" stroke="#fffaf0" stroke-opacity=".35" stroke-width="14" filter="url(#soft)"/>
+          <ellipse cx="370" cy="330" rx="150" ry="230" fill="url(#mound)" transform="rotate(14 370 330)" filter="url(#softer)"/>
+          <ellipse cx="640" cy="330" rx="150" ry="230" fill="url(#mound)" transform="rotate(-12 640 330)" filter="url(#softer)"/>
+          <path d="M505,140 C500,230 498,320 505,400" stroke="#1a110a" stroke-opacity=".6" stroke-width="44" fill="none" filter="url(#softer)"/>
+          <path d="M260,170 C190,220 140,300 120,400" stroke="#1a110a" stroke-opacity=".7" stroke-width="30" fill="none" filter="url(#soft)"/>
+          <path d="M284,176 C214,228 166,306 148,400" stroke="#fffaf0" stroke-opacity=".42" stroke-width="18" fill="none" filter="url(#soft)"/>
+          <path d="M200,110 C140,140 70,180 0,250" stroke="#1a110a" stroke-opacity=".45" stroke-width="22" fill="none" filter="url(#soft)"/>
+          <path d="M214,128 C154,160 84,200 0,272" stroke="#fffaf0" stroke-opacity=".22" stroke-width="14" fill="none" filter="url(#soft)"/>
+          <path d="M760,170 C820,230 860,310 880,400" stroke="#1a110a" stroke-opacity=".65" stroke-width="30" fill="none" filter="url(#soft)"/>
+          <path d="M738,176 C796,236 834,314 852,400" stroke="#fffaf0" stroke-opacity=".38" stroke-width="18" fill="none" filter="url(#soft)"/>
+          <path d="M820,100 C880,130 940,170 1000,200" stroke="#1a110a" stroke-opacity=".4" stroke-width="20" fill="none" filter="url(#soft)"/>
+          <path d="M430,70 C400,110 380,150 372,190" stroke="#1a110a" stroke-opacity=".35" stroke-width="18" fill="none" filter="url(#soft)"/>
+          <path d="M600,70 C630,110 648,150 652,190" stroke="#1a110a" stroke-opacity=".35" stroke-width="18" fill="none" filter="url(#soft)"/>
+          <path d="M0,380 C150,350 330,372 470,392" stroke="#1a110a" stroke-opacity=".4" stroke-width="20" fill="none" filter="url(#soft)"/>
+          <path d="M0,362 C150,334 330,354 470,374" stroke="#fffaf0" stroke-opacity=".18" stroke-width="12" fill="none" filter="url(#soft)"/>
+        </svg>
+      </div>
 
-      <!-- Laptop: the class quiz page -->
-      <section class="laptop" aria-label="Laptop">
+      <!-- Laptop on your knees: the class quiz page -->
+      <section class="laptop" aria-label="Laptop: the class quiz page">
         <div class="laptop-lid">
-          <div class="laptop-cam" aria-hidden="true"></div>
-          <div class="screen">
+          <span class="laptop-cam" aria-hidden="true"></span>
+          <div class="screen screen-laptop">
             <div class="browser-bar" aria-hidden="true">
               <span class="browser-dots"><i></i><i></i><i></i></span>
-              <span class="browser-tab">Quiz · CSE 2004</span>
+              <span class="browser-url">
+                <svg viewBox="0 0 16 16"><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3.5" y="7" width="9" height="7" rx="1.5" fill="currentColor"/></svg>
+                <span>cse2004.class/quizzes/<span id="url-day">day-1</span></span>
+              </span>
             </div>
-            <div class="browser-url" aria-hidden="true">cse2004.class/quizzes/<span id="url-day">day-1</span></div>
-            <div class="site">
-              <nav class="site-nav" aria-label="Class site">
-                <span class="site-brand">CSE 2004</span>
-                <span class="site-link">Lectures</span>
-                <span class="site-link">Websites</span>
-                <span class="site-link is-active">Quizzes</span>
-              </nav>
-              <div class="site-main">
-                <article class="card" id="quiz-card">
-                  <header class="card-header">
-                    <h2 class="card-title" id="quiz-title">Quiz · Day 1</h2>
-                    <span class="badge" id="quiz-badge">Locked</span>
-                  </header>
+            <nav class="site-nav" aria-label="Class site">
+              <span class="site-brand">CSE 2004</span>
+              <span class="site-link">Syllabus</span>
+              <span class="site-link">Schedule</span>
+              <span class="site-link is-active">Quizzes</span>
+            </nav>
+            <div class="site-main">
+              <article class="card" id="quiz-card">
+                <header class="card-header">
+                  <h2 class="card-title" id="quiz-title">Quiz · Day 1</h2>
+                  <span class="badge" id="quiz-badge">Locked</span>
+                </header>
 
-                  <div class="card-body" id="quiz-locked">
-                    <p class="card-text">This quiz is locked. Enter the access code given at the start of class.</p>
-                    <form class="code-form" id="code-form" autocomplete="off">
-                      <label class="form-label" for="code-input">Access code</label>
-                      <div class="input-group">
-                        <input class="form-control" id="code-input" name="code" type="text" spellcheck="false" autocapitalize="off" maxlength="40" aria-describedby="code-feedback">
-                        <button class="btn btn-primary" type="submit">Unlock</button>
-                      </div>
-                      <p class="feedback" id="code-feedback" role="status"></p>
-                    </form>
-                    <dl class="quiz-meta">
-                      <div><dt>Worth now</dt><dd id="meta-worth">2.00 / 2</dd></div>
-                      <div><dt>Late penalty</dt><dd id="meta-late">0%</dd></div>
-                      <div><dt>Closes</dt><dd>2:20 PM</dd></div>
-                    </dl>
-                    <button class="btn-link" id="give-up" type="button">Close the laptop and go back to sleep</button>
-                  </div>
+                <div class="card-body" id="quiz-locked">
+                  <form class="code-form" id="code-form" autocomplete="off">
+                    <label class="form-label" for="code-input">Enter the access code given at the start of class.</label>
+                    <div class="input-group">
+                      <input class="form-control" id="code-input" name="code" type="text" placeholder="Access code" spellcheck="false" autocapitalize="off" maxlength="40" aria-describedby="code-feedback">
+                      <button class="btn btn-primary" type="submit">Unlock</button>
+                    </div>
+                    <p class="feedback" id="code-feedback" role="status"></p>
+                  </form>
+                  <dl class="quiz-meta">
+                    <div><dt>Worth now</dt><dd id="meta-worth">2.00 / 2</dd></div>
+                    <div><dt>Late penalty</dt><dd id="meta-late">0%</dd></div>
+                    <div><dt>Closes</dt><dd>2:20 PM</dd></div>
+                  </dl>
+                  <button class="btn-link" id="give-up" type="button">Close the laptop and go back to sleep</button>
+                </div>
 
-                  <div class="card-body" id="quiz-done" hidden>
-                    <p class="result-score"><span id="result-points">2.00</span> <span class="result-of">/ 2 points</span></p>
-                    <p class="result-line" id="result-line"></p>
-                    <div class="result-answer">
-                      <span class="form-label">Access code</span>
-                      <span class="result-code" id="result-code"></span>
-                    </div>
-                    <p class="result-ending" id="result-ending">Nice try. See you Thursday.</p>
-                    <div class="result-actions">
-                      <button class="btn btn-primary" id="share-button" type="button">Copy my result</button>
-                      <button class="btn btn-outline-primary" id="stats-button" type="button">Attendance</button>
-                    </div>
-                    <p class="feedback" id="share-feedback" role="status"></p>
-                    <textarea class="share-fallback" id="share-fallback" rows="4" readonly hidden aria-label="Your result, to copy by hand"></textarea>
+                <div class="card-body" id="quiz-done" hidden>
+                  <p class="result-score"><span id="result-points">2.00</span> <span class="result-of">/ 2 points</span></p>
+                  <p class="result-line" id="result-line"></p>
+                  <div class="result-answer">
+                    <span class="result-label">Access code</span>
+                    <span class="result-code" id="result-code"></span>
                   </div>
-                </article>
-                <p class="site-footer" id="site-footer"></p>
-              </div>
+                  <p class="result-ending" id="result-ending">Nice try. See you Thursday.</p>
+                  <div class="result-actions">
+                    <button class="btn btn-primary" id="share-button" type="button">Copy my result</button>
+                    <button class="btn btn-outline-primary" id="stats-button" type="button">My record</button>
+                  </div>
+                  <p class="feedback" id="share-feedback" role="status"></p>
+                  <textarea class="share-fallback" id="share-fallback" rows="4" readonly hidden aria-label="Your result, to copy by hand"></textarea>
+                </div>
+              </article>
+              <p class="site-footer" id="site-footer"></p>
             </div>
           </div>
         </div>
-        <div class="laptop-base" aria-hidden="true"><div class="laptop-notch"></div></div>
+        <div class="laptop-hinge" aria-hidden="true"></div>
+        <div class="laptop-deck" aria-hidden="true"><div class="laptop-keys"></div><div class="laptop-pad"></div></div>
       </section>
 
-      <!-- Phone: the group chat -->
+      <!-- Phone on the duvet: the group chat -->
       <section class="phone" id="phone" aria-label="Phone: group chat">
-        <div class="phone-body">
-          <div class="phone-screen">
-            <div class="phone-status" aria-hidden="true">
-              <span id="phone-time">1:05</span>
-              <span class="phone-island"></span>
-              <span id="phone-weather">St. Louis</span>
-            </div>
-            <header class="chat-header">
-              <span class="chat-avatars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-              <span class="chat-name" id="chat-name">2004 back row</span>
-              <button class="chat-bell" id="bell" type="button" aria-pressed="false" aria-label="Get a notification when a friend replies while you're in another tab">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.6L5.3 15a1 1 0 0 0 .9 1.5h11.6a1 1 0 0 0 .9-1.5L17 11.6V8a5 5 0 0 0-5-5Zm-2 15a2 2 0 0 0 4 0"/></svg>
-              </button>
-            </header>
-            <ol class="chat" id="chat" aria-live="polite" aria-label="Messages"></ol>
-            <div class="chat-compose">
-              <button class="hint-button" id="hint-button" type="button">
-                <span class="hint-label">another hint pls 🙏</span>
-                <span class="hint-cost" id="hint-cost">+7 min</span>
-              </button>
-            </div>
+        <div class="screen screen-phone">
+          <div class="phone-status">
+            <span class="phone-time" id="phone-time">1:05</span>
+            <span class="phone-weather" id="phone-weather">St. Louis</span>
+          </div>
+          <header class="chat-header">
+            <span class="chat-avatars" aria-hidden="true"><i>M</i><i>J</i><i>T</i><i>P</i></span>
+            <h2 class="chat-name" id="chat-name">2004 back row</h2>
+            <span class="chat-sub">Maya, Jordan, Theo, Priya</span>
+            <button class="chat-bell" id="bell" type="button" aria-pressed="false" aria-label="Get a notification when a friend replies while you're in another tab">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.6L5.3 15a1 1 0 0 0 .9 1.5h11.6a1 1 0 0 0 .9-1.5L17 11.6V8a5 5 0 0 0-5-5Zm-2 15a2 2 0 0 0 4 0"/></svg>
+            </button>
+          </header>
+          <ol class="chat" id="chat" aria-live="polite" aria-label="Messages"></ol>
+          <div class="chat-compose">
+            <button class="hint-button" id="hint-button" type="button">
+              <span class="hint-label">Ask for a hint</span>
+              <span class="hint-cost" id="hint-cost">+7 min</span>
+            </button>
           </div>
         </div>
       </section>
 
-      <!-- The time jump flash -->
-      <div class="time-blur" aria-hidden="true"></div>
+      <!-- Lighting: one layer multiplied over the room. The screens and window sit above it. -->
+      <div class="light" aria-hidden="true">
+        <div class="light-ambient"></div>
+        <div class="light-slits light-slits-wall"></div>
+        <div class="light-slits light-slits-bed"></div>
+        <div class="light-laptop"></div>
+        <div class="light-phone"></div>
+        <div class="light-clock"></div>
+        <div class="light-warm"></div>
+      </div>
+      <div class="vignette" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
+
+      <a class="cue" href="#how">
+        <span class="cue-track" aria-hidden="true"><span class="cue-dot"></span></span>
+        <span class="cue-text">How to play</span>
+      </a>
+    </section>
+
+    <div class="site" id="site">
+      <section class="sec" id="how" aria-labelledby="how-title">
+        <h2 id="how-title">How to play</h2>
+        <p class="lede">You skipped CSE 2004 and missed today's quiz code. It's always one general-knowledge word, the same for everyone today. Type guesses into the quiz page on your laptop before class ends. Your friends in the back row will help, but only so much.</p>
+        <ul class="rules">
+          <li>
+            <h3>Your friends won't text you the code.</h3>
+            <p>The syllabus calls sharing access codes academic dishonesty, so they send hints instead. The first one comes free.</p>
+          </li>
+          <li>
+            <h3>Each hint costs 7 minutes.</h3>
+            <p>Your friends are in class, and replies take time. Late work loses points: 1.25% for every minute after 1:05.</p>
+          </li>
+          <li>
+            <h3>A wrong code costs 1 minute.</h3>
+            <p>Every attempt takes a moment, so typing every word you know doesn't pay. A near miss is free: you'll be told to check the spelling.</p>
+          </li>
+          <li>
+            <h3>The quiz closes at 2:20.</h3>
+            <p>That's when class ends. After that it's 0 / 2, and you'll see everyone Thursday.</p>
+          </li>
+          <li>
+            <h3>Your lowest three days are dropped.</h3>
+            <p>Just like the syllabus drops your three lowest quiz grades, so one bad morning won't sink you.</p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="sec" id="record" aria-labelledby="record-title">
+        <h2 id="record-title">Your record</h2>
+        <dl class="record" id="stats"></dl>
+        <p class="note" id="record-note">Like the syllabus, your lowest three days are dropped.</p>
+        <table class="month" id="record-month"></table>
+      </section>
+
+      <section class="sec" id="past" aria-labelledby="past-title">
+        <h2 id="past-title">Past days</h2>
+        <p class="note">Missed a day? Take it as a make-up. Make-ups are practice and don't count.</p>
+        <ul class="past" id="makeups"></ul>
+      </section>
+
+      <footer class="foot">
+        <p class="foot-made">Made for CSE 2004.</p>
+        <p>Hints from Wikipedia, Wikidata, Datamuse, iNaturalist and Wikimedia Commons. Weather from Open-Meteo. No accounts, nothing tracked: your progress stays in this browser.</p>
+      </footer>
     </div>
-  </div>
+  </main>
 
   <!-- Waking up -->
   <div class="intro" id="intro">
@@ -178,24 +279,9 @@
       <p class="intro-title">You overslept.</p>
       <p class="intro-text">CSE 2004 started at 1:00. The quiz code is up on the projector and you're still in bed.</p>
       <button class="intro-button" id="wake-button" type="button">Wake up</button>
-      <p class="intro-small" id="intro-small">Has sound. Mute it with the speaker in the corner.</p>
+      <p class="intro-small" id="intro-small">Has sound. Turn it off with Sound in the top bar.</p>
     </div>
   </div>
-
-  <button class="mute-button" id="mute" type="button" aria-pressed="false" aria-label="Mute sounds">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="speaker" d="M4 9h4l5-4v14l-5-4H4z"/><path class="waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="cross" d="M16 9l6 6m0-6-6 6"/></svg>
-  </button>
-
-  <!-- Wall calendar, opened -->
-  <dialog class="sheet" id="stats-dialog" aria-labelledby="stats-title">
-    <form method="dialog" class="sheet-close-form"><button class="sheet-close" aria-label="Close">×</button></form>
-    <h2 class="sheet-title" id="stats-title">Attendance</h2>
-    <dl class="stats" id="stats"></dl>
-    <p class="sheet-note">Like the syllabus: your lowest three quiz days are dropped.</p>
-    <h3 class="sheet-subtitle">Make-up quizzes</h3>
-    <p class="sheet-note">Missed a day? Practice it here. Make-ups don't count.</p>
-    <ul class="makeups" id="makeups"></ul>
-  </dialog>
 
   <!-- A photo from the chat, bigger -->
   <dialog class="sheet photo-sheet" id="photo-dialog" aria-label="Photo from the group chat">

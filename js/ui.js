@@ -1,9 +1,9 @@
 /*
  * ui.js
  * Everything that touches the page: the clock's LED digits, the light in
- * the room, the scrap of paper with tried codes, the group chat, the laptop's quiz card, the wall
- * calendar and dialogs. It shows what game.js decided; it never decides
- * scores or time itself.
+ * the dark room, the scrap of paper with tried codes, the group chat, the
+ * laptop's quiz card, the wall calendar, and the record and past days below
+ * the room. It shows what game.js decided; it never decides scores or time.
  */
 
 import { CLASS_END, FRIENDS, QUIZ_POINTS } from "./config.js";
@@ -48,8 +48,14 @@ export const els = {
   calendar: $("calendar"),
   calendarMonth: $("calendar-month"),
   calendarGrid: $("calendar-grid"),
-  statsDialog: $("stats-dialog"),
+  calendarNote: $("calendar-note"),
+  window: $("window"),
+  barDay: $("bar-day"),
+  bar: $("bar"),
+  main: $("main"),
   stats: $("stats"),
+  recordNote: $("record-note"),
+  recordMonth: $("record-month"),
   makeups: $("makeups"),
   photoDialog: $("photo-dialog"),
   photoFrame: $("photo-frame"),
@@ -135,24 +141,49 @@ export function setTimeOfDay(minute, jumpMs = 0) {
   }
 }
 
+// Small weather icons for the phone's status bar, drawn in one stroke style.
+const CLOUD = '<path d="M5.5 10.5h9a3.2 3.2 0 0 0 .3-6.4A4.6 4.6 0 0 0 6 4.6a3 3 0 0 0-.5 5.9z" fill="currentColor"/>';
+const WEATHER_ICONS = {
+  clear: '<circle cx="10" cy="8" r="3.4" fill="currentColor"/><path d="M10 1.5v1.8M10 12.7v1.8M3.5 8h1.8M14.7 8h1.8M5.4 3.4l1.3 1.3M13.3 11.3l1.3 1.3M5.4 12.6l1.3-1.3M13.3 4.7l1.3-1.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+  cloudy: CLOUD,
+  rain: `${CLOUD}<path d="M7 12.5l-1 2.2M10.5 12.5l-1 2.2M14 12.5l-1 2.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>`,
+  snow: `${CLOUD}<circle cx="6.5" cy="13.6" r="1" fill="currentColor"/><circle cx="10" cy="14.4" r="1" fill="currentColor"/><circle cx="13.5" cy="13.6" r="1" fill="currentColor"/>`,
+};
+const WEATHER_WORDS = { clear: "Clear", cloudy: "Cloudy", rain: "Rain", snow: "Snow" };
+
 export function setWeather(weather) {
   if (!weather) {
     els.phoneWeather.textContent = "St. Louis";
+    els.window.setAttribute("aria-label", "Closed window blinds");
     return;
   }
   const kind = weather.snow ? "snow" : weather.rain ? "rain" : weather.cloudy ? "cloudy" : "clear";
   els.scene.dataset.weather = kind;
-  const icon = { snow: "❄", rain: "☂", cloudy: "☁", clear: "☀" }[kind];
-  els.phoneWeather.textContent = `${icon} ${weather.temp}°`;
-  els.phoneWeather.setAttribute("title", `St. Louis right now: ${weather.temp}°F, ${kind}`);
+  const words = `${WEATHER_WORDS[kind]} · ${weather.temp}°F`;
+  els.phoneWeather.innerHTML = `<svg viewBox="0 0 20 16" aria-hidden="true">${WEATHER_ICONS[kind]}</svg><span></span>`;
+  els.phoneWeather.querySelector("span").textContent = words;
+  els.phoneWeather.setAttribute("title", `St. Louis right now: ${words}`);
+  els.window.setAttribute("aria-label", `Closed window blinds. Outside in St. Louis: ${words}.`);
 }
 
 // ---------- The laptop ----------
 
-export function renderQuizHeader(day, makeUp) {
+export function renderQuizHeader(day, makeUp, date) {
   els.quizTitle.textContent = makeUp ? `Make-up quiz · Day ${day}` : `Quiz · Day ${day}`;
   els.urlDay.textContent = `day-${day}`;
   document.title = `Day ${day} · Skipped`;
+  const when = date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  els.barDay.textContent = `Day ${day}`;
+  const dateTag = document.createElement("span");
+  dateTag.className = "bar-date";
+  dateTag.textContent = ` · ${when}`;
+  els.barDay.append(dateTag);
+  if (makeUp) {
+    const tag = document.createElement("span");
+    tag.className = "is-makeup";
+    tag.textContent = " · make-up";
+    els.barDay.append(tag);
+  }
   if (makeUp) {
     els.siteFooter.innerHTML = `Make-up quiz: practice only, it won't count. <a href="./">Back to today's quiz</a>`;
     els.siteFooter.classList.add("is-makeup");
@@ -346,6 +377,9 @@ export function buzzPhone() {
   els.phone.classList.remove("is-buzzing");
   void els.phone.offsetWidth;
   els.phone.classList.add("is-buzzing");
+  els.scene.classList.add("is-buzz");
+  clearTimeout(buzzPhone.timer);
+  buzzPhone.timer = setTimeout(() => els.scene.classList.remove("is-buzz"), 1100);
 }
 
 export function setHintButton({ label, cost, disabled }) {
@@ -375,64 +409,112 @@ function openPhoto(node) {
   els.photoDialog.showModal();
 }
 
-// ---------- Wall calendar ----------
+// ---------- Wall calendar and the record below the room ----------
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const FULL_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /**
+ * Draws the month twice: on the paper calendar on the wall, and as the
+ * table in "Your record".
  * @param {Date} date  the date being played (sets the month shown)
  * @param {(d: Date) => number} dayOf  date -> game day number
  * @param {object} results  saved results by day
  * @param {number} today
+ * @param {number} streak
  */
-export function renderCalendar(date, dayOf, results, today) {
+export function renderCalendar(date, dayOf, results, today, streak) {
   const year = date.getFullYear();
   const month = date.getMonth();
-  els.calendarMonth.textContent = date.toLocaleString("en-US", { month: "long" });
-  const cells = WEEKDAYS.map((w) => `<span class="head">${w}</span>`);
+  const monthName = date.toLocaleString("en-US", { month: "long" });
+  els.calendarMonth.innerHTML = `${monthName} <span>${year}</span>`;
+
+  const wall = WEEKDAYS.map((w) => `<span class="head">${w}</span>`);
   const firstWeekday = new Date(year, month, 1).getDay();
-  for (let i = 0; i < firstWeekday; i++) cells.push("<span></span>");
+  for (let i = 0; i < firstWeekday; i++) wall.push('<span class="blank"></span>');
+
+  const rows = [];
+  let row = Array.from({ length: firstWeekday }, () => "<td></td>");
   const days = new Date(year, month + 1, 0).getDate();
   for (let d = 1; d <= days; d++) {
     const n = dayOf(new Date(year, month, d));
     const result = results[n];
-    const cls = ["day"];
+    const cls = [];
+    if (n < 1) cls.push("is-before");
     if (n === today) cls.push("is-today");
     if (result) cls.push(result.won ? "is-won" : "is-lost");
-    cells.push(`<span class="${cls.join(" ")}">${d}</span>`);
+    wall.push(`<span class="day ${cls.join(" ")}">${d}</span>`);
+
+    let note = "";
+    if (result) note = `<span class="month-score">${result.won ? result.score.toFixed(2) : "closed"}</span>`;
+    else if (n === today) note = '<span class="month-score">today</span>';
+    else if (n >= 1 && n < today) {
+      cls.push("is-missed");
+      note = '<span class="month-score">missed</span>';
+    }
+    const current = n === today ? ' aria-current="date"' : "";
+    row.push(`<td class="${cls.join(" ")}"${current}>${d}${note}</td>`);
+    if (row.length === 7) {
+      rows.push(`<tr>${row.join("")}</tr>`);
+      row = [];
+    }
   }
-  els.calendarGrid.innerHTML = cells.join("");
+  if (row.length) rows.push(`<tr>${row.join("")}${"<td></td>".repeat(7 - row.length)}</tr>`);
+
+  els.calendarGrid.innerHTML = wall.join("");
+  els.calendarNote.textContent = streak > 0 ? `streak: ${streak}` : "";
+  const head = WEEKDAY_NAMES.map((w, i) => `<th scope="col" abbr="${FULL_NAMES[i]}">${w}</th>`).join("");
+  els.recordMonth.innerHTML = `<caption>${monthName} ${year}</caption><thead><tr>${head}</tr></thead><tbody>${rows.join("")}</tbody>`;
 }
 
-export function renderStats(stats, makeups) {
+export function renderStats(stats, pastDays) {
   const rows = [
+    ["Streak", `${stats.streak} <span>${stats.streak === 1 ? "day" : "days"}</span>`],
     ["Quizzes taken", stats.played],
-    ["Got the code", stats.wins],
-    ["Average (3 lowest dropped)", `${stats.average.toFixed(2)} / ${QUIZ_POINTS}`],
-    ["Grade", `${stats.percent}%`],
-    ["Streak", `${stats.streak} 🔥`],
+    ["Average", `${stats.average.toFixed(2)} <span>/ ${QUIZ_POINTS}</span>`],
     ["Best streak", stats.bestStreak],
   ];
   els.stats.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+  els.recordNote.textContent =
+    stats.played > 3
+      ? `Your lowest three days are dropped from the average, like the syllabus does. Grade so far: ${stats.percent}%.`
+      : "Like the syllabus, your lowest three days get dropped once you've taken four quizzes.";
+
+  if (!pastDays.length) {
+    const li = document.createElement("li");
+    li.className = "is-empty";
+    li.textContent = "Nothing to make up yet. Today is the first quiz.";
+    els.makeups.replaceChildren(li);
+    return;
+  }
   els.makeups.replaceChildren(
-    ...(makeups.length
-      ? makeups.map(({ day, label, done }) => {
-          const li = document.createElement("li");
-          const a = document.createElement("a");
-          a.href = `?day=${day}`;
-          a.innerHTML = `<span>Day ${day}</span><span>${label}${done ? " · done" : ""}</span>`;
-          li.append(a);
-          return li;
-        })
-      : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Nothing to make up yet. Perfect attendance so far." })]),
+    ...pastDays.map(({ day, label, result, practiced }) => {
+      const li = document.createElement("li");
+      const score = result ? (result.won ? `Got it · ${result.score.toFixed(2)}` : "Closed · 0.00") : practiced ? "Made up (practice)" : "Missed";
+      li.innerHTML = `
+        <span class="past-day">Day ${day}<span class="past-date">${label}</span></span>
+        <span class="past-word" role="img" aria-label="Answer hidden"></span>
+        <span class="past-score${result ? "" : " is-missed"}">${score}</span>
+        <a class="past-link" href="?day=${day}">${result || practiced ? "Replay" : "Make it up"}</a>`;
+      return li;
+    }),
   );
+}
+
+// ---------- Waking up ----------
+
+// While asleep, only the intro can be used: the room, bar and site wait.
+function setAsleep(asleep) {
+  els.main.inert = asleep;
+  els.bar.inert = asleep;
+  document.body.classList.toggle("is-asleep", asleep);
 }
 
 export function hideIntro({ instant = false } = {}) {
   els.intro.classList.add("is-gone");
   if (instant) els.intro.hidden = true;
-  els.scene.inert = false;
-  document.body.classList.remove("is-asleep");
+  setAsleep(false);
 }
 
 // The alarm is going off: the intro's button now turns it off.
@@ -443,7 +525,5 @@ export function ringIntro() {
 
 export function showIntro(minute) {
   els.introTime.textContent = `${formatTime(minute)} PM`;
-  // The room can't be clicked or tabbed into until you wake up.
-  els.scene.inert = true;
-  document.body.classList.add("is-asleep");
+  setAsleep(true);
 }

@@ -20,7 +20,7 @@ Plain HTML, CSS and JavaScript modules. No framework, no build step, no API keys
 | Open-Meteo | St. Louis weather on the window: rain, snow, clouds |
 | Web Audio | Every sound, synthesized; the muffled voice memo |
 | Canvas | The blurry, keystoned projector photo with heads in the way |
-| Web Storage | Your progress, streaks and the wall calendar |
+| Web Storage | Your progress, streaks, the wall calendar and your record |
 | Clipboard | Sharing your result |
 | Notifications, Vibration | Texts that arrive while you're in another tab; the phone buzz |
 

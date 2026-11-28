@@ -118,7 +118,7 @@ function stamp(text) {
 // ---------- Rendering the whole state (on load) ----------
 
 function renderAll() {
-  ui.renderQuizHeader(day, makeUp);
+  ui.renderQuizHeader(day, makeUp, dateOfDay(day));
   ui.renderClock(game.minute);
   ui.setTimeOfDay(game.minute);
   ui.renderNotes(game.guesses);
@@ -135,21 +135,30 @@ function renderAll() {
   }
 }
 
+// The wall calendar, "Your record" and "Past days" below the room.
 function renderCalendar() {
   const results = loadResults();
-  ui.renderCalendar(dateOfDay(day), dayNumber, results, today);
+  const stats = computeStats(results, today);
+  ui.renderCalendar(dateOfDay(day), dayNumber, results, today, stats.streak);
+  const pastDays = [];
+  for (let d = today - 1; d >= 1 && pastDays.length < 30; d--) {
+    const label = dateOfDay(d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    const practiced = !results[d] && loadGame(d)?.status === "won";
+    pastDays.push({ day: d, label, result: results[d], practiced });
+  }
+  ui.renderStats(stats, pastDays);
 }
 
 function updateHintButton() {
   if (game.status !== "playing") {
-    ui.setHintButton({ label: "class is over", cost: "—", disabled: true });
+    ui.setHintButton({ label: "Class is over", cost: "—", disabled: true });
   } else if (busy) {
-    ui.setHintButton({ label: "waiting for a reply…", cost: "…", disabled: true });
+    ui.setHintButton({ label: "Waiting for a reply…", cost: "…", disabled: true });
   } else if (!nextHint(game)) {
-    ui.setHintButton({ label: "they're out of hints", cost: "0 left", disabled: true });
+    ui.setHintButton({ label: "They're out of hints", cost: "0 left", disabled: true });
   } else {
     ui.setHintButton({
-      label: game.hints.length <= 1 ? "pls give me another hint 🙏" : "another hint pls 🙏",
+      label: game.hints.length <= 1 ? "Ask for a hint" : "Another hint",
       cost: `+${HINT_WAIT_MINUTES} min`,
       disabled: false,
     });
@@ -344,17 +353,8 @@ async function share() {
   }
 }
 
-function openStats() {
-  const results = loadResults();
-  const stats = computeStats(results, today);
-  const makeups = [];
-  for (let d = today - 1; d >= 1 && makeups.length < 30; d--) {
-    if (results[d]) continue;
-    const date = dateOfDay(d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-    makeups.push({ day: d, label: date, done: loadGame(d)?.status === "won" });
-  }
-  ui.renderStats(stats, makeups);
-  els.statsDialog.showModal();
+function openRecord() {
+  document.getElementById("record").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
 }
 
 async function toggleBell() {
@@ -369,11 +369,11 @@ async function toggleBell() {
   }
 }
 
+// The "Sound" toggle in the top bar: pressed means sound is on.
 function toggleMute() {
   const muted = !sound.isMuted();
   sound.setMuted(muted);
-  els.mute.setAttribute("aria-pressed", String(muted));
-  els.mute.setAttribute("aria-label", muted ? "Unmute sounds" : "Mute sounds");
+  els.mute.setAttribute("aria-pressed", String(!muted));
 }
 
 // ---------- Start ----------
@@ -381,6 +381,7 @@ function toggleMute() {
 function start() {
   renderAll();
   els.bell.setAttribute("aria-pressed", String(notificationsOn()));
+  els.mute.setAttribute("aria-pressed", String(!sound.isMuted()));
 
   els.codeForm.addEventListener("submit", onCode);
   els.codeInput.addEventListener("input", () => {
@@ -395,17 +396,15 @@ function start() {
     await finish();
   });
   els.shareButton.addEventListener("click", share);
-  els.statsButton.addEventListener("click", openStats);
-  els.calendar.addEventListener("click", openStats);
+  els.statsButton.addEventListener("click", openRecord);
+  els.calendar.addEventListener("click", openRecord);
   els.bell.addEventListener("click", toggleBell);
   els.mute.addEventListener("click", toggleMute);
 
   // Close a dialog by clicking outside it.
-  for (const dialog of [els.statsDialog, els.photoDialog]) {
-    dialog.addEventListener("click", (e) => {
-      if (e.target === dialog) dialog.close();
-    });
-  }
+  els.photoDialog.addEventListener("click", (e) => {
+    if (e.target === els.photoDialog) els.photoDialog.close();
+  });
 
   if (game.messages.length === 0 && game.status === "playing") {
     // A fresh day. Browsers block sound until a click, so the first click
