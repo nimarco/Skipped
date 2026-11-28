@@ -23,6 +23,8 @@ export function hintLadder(word) {
     if (type === "rhyme") return word.rhymes.length > 0;
     if (type === "photo") return Boolean(word.inat);
     if (type === "voice") return Boolean(word.audio);
+    // Countries and states only have flags and maps for photos: no slide.
+    if (type === "slide") return word.slide !== false;
     return true;
   });
 }

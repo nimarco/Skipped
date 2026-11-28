@@ -30,10 +30,17 @@ export function blankOut(text, accept) {
   return out;
 }
 
+// Parts of a place name that don't give it away on their own ("New", "South"…).
+const GENERIC_PARTS = new Set(["new", "north", "south", "east", "west", "saint", "san", "los", "las", "cape", "great", "united", "city", "lake", "river", "sea", "gulf", "mount", "dead", "red"]);
+
 export function leaks(text, answer) {
-  const a = answer.toLowerCase();
-  const stem = a.length > 4 ? a.slice(0, Math.max(4, a.length - 2)) : a;
-  return (text.match(/[A-Za-z]+/g) ?? []).some((w) => w.toLowerCase().startsWith(stem));
+  const all = answer.toLowerCase().split(" ");
+  const parts = all.filter((p) => !GENERIC_PARTS.has(p));
+  const words = (text.match(/[A-Za-z]+/g) ?? []).map((w) => w.toLowerCase());
+  return (parts.length ? parts : all).some((a) => {
+    const stem = a.length > 4 ? a.slice(0, Math.max(4, a.length - 2)) : a;
+    return words.some((w) => w.startsWith(stem));
+  });
 }
 
 function splitSentences(text) {
@@ -53,12 +60,20 @@ export function blankedSentence(extract, word) {
   return word.sentences[0];
 }
 
+// "O _ _" or, for two words, "N _ _   _ _ _ _"
 export function letterPattern(answer) {
   return answer
     .toUpperCase()
-    .split("")
-    .map((c, i) => (i === 0 ? c : "_"))
-    .join(" ");
+    .split(" ")
+    .map((part, w) => part.split("").map((c, i) => (w === 0 && i === 0 ? c : "_")).join(" "))
+    .join("   ");
+}
+
+export function letterCount(answer) {
+  const parts = answer.split(" ");
+  const first = answer[0].toUpperCase();
+  if (parts.length === 1) return `${answer.length} letters. starts with ${first}`;
+  return `${parts.length} words, ${parts.map((p) => p.length).join(" + ")} letters. starts with ${first}`;
 }
 
 // ---------- the chat ----------
@@ -101,7 +116,7 @@ export function buildHint(type, word, live) {
     }
     case "letters":
       return [
-        msg("maya", `${word.answer.length} letters. starts with ${word.answer[0].toUpperCase()}`),
+        msg("maya", letterCount(word.answer)),
         msg("maya", letterPattern(word.answer)),
       ];
     case "rhyme": {
