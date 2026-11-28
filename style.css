@@ -594,6 +594,10 @@ button {
   font-size: 0.56em;
 }
 
+.scrap-list li.is-longest {
+  font-size: 0.4em;
+}
+
 /* crossed out in a single hurried stroke */
 .scrap-list li::after {
   content: "";
@@ -769,6 +773,15 @@ button {
 
 .duvet-base {
   fill: #aba091;
+}
+
+/* deeper folds, so the duvet still reads as cloth in the dark */
+.duvet-folds path[stroke="#1a110a"] {
+  stroke-opacity: 0.85;
+}
+
+.duvet-folds path[stroke="#fffaf0"] {
+  stroke-opacity: 0.6;
 }
 
 /* cotton weave over the folds */

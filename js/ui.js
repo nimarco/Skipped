@@ -237,10 +237,12 @@ export function renderNotes(guesses, animateLast = false) {
       // sloppy but stable: each line sits a little crooked, the same way every reload
       const seed = guess.length * 37 + i * 53;
       li.style.setProperty("--tilt", `${(seed % 7) - 3}deg`);
-      li.style.setProperty("--nudge", `${(seed % 5) * 0.08}em`);
       li.style.setProperty("--slash", `${-2 - (seed % 6)}deg`);
-      if (guess.length > 13) li.classList.add("is-longer");
-      else if (guess.length > 8) li.classList.add("is-long");
+      // long codes get squeezed in smaller so they stay on the paper
+      if (guess.length > 13) li.classList.add("is-longest");
+      else if (guess.length > 9) li.classList.add("is-longer");
+      else if (guess.length > 6) li.classList.add("is-long");
+      else li.style.setProperty("--nudge", `${(seed % 5) * 0.08}em`);
       if (animateLast && i === guesses.length - 1) li.classList.add("is-new");
       return li;
     }),
